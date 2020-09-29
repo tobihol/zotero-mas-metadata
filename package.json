@@ -12,16 +12,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/TOCHANGE/zotero-mas-metadata.git"
+    "url": "https://github.com/TobiHol/zotero-mas-metadata.git"
   },
   "author": {
     "name": "",
     "email": ""
   },
   "bugs": {
-    "url": "https://github.com/TOCHANGE/zotero-mas-metadata/issues"
+    "url": "https://github.com/TobiHol/zotero-mas-metadata/issues"
   },
-  "homepage": "https://github.com/TOCHANGE/zotero-mas-metadata",
+  "homepage": "https://github.com/TobiHol/zotero-mas-metadata",
   "dependencies": {
     "@types/mocha": "^7.0.2",
     "circular-dependency-plugin": "^5.2.0",
@@ -39,7 +39,7 @@
   },
   "xpi": {
     "name": "Mas Metadata for Zotero",
-    "updateLink": "https://github.com/TOCHANGE/zotero-mas-metadata/releases/download/v{version}/zotero-zotero-mas-metadata-{version}.xpi",
-    "releaseURL": "https://github.com/TOCHANGE/zotero-mas-metadata/releases/download/release/"
+    "updateLink": "https://github.com/TobiHol/zotero-mas-metadata/releases/download/v{version}/zotero-zotero-mas-metadata-{version}.xpi",
+    "releaseURL": "https://github.com/TobiHol/zotero-mas-metadata/releases/download/release/"
   }
 }
