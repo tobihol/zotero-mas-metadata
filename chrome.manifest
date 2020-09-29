@@ -1,0 +1,5 @@
+content	zotero-mas-metadata				content/
+locale	zotero-mas-metadata	en-US		locale/en-US/
+skin	zotero-mas-metadata	default		skin/
+
+overlay	chrome://zotero/content/zoteroPane.xul	chrome://zotero-mas-metadata/content/overlay.xul
