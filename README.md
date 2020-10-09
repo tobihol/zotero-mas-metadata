@@ -1,6 +1,27 @@
-zotero-mas-metadata
-===================
+# Zotero MAS MetaData
 
-Install by downloading the [latest version](https://github.com/TobiHol/zotero-mas-metadata/releases/latest)
+A Zotero plugin for adding Microsoft Academic Search (MAS) metadata. Currently only adds citation counts to the extra field of items in Zotero.
 
-A Zotero plugin for adding Microsoft Academic Search metadata.
+You need to generate an api key for the Microsoft Academic Search API to use this plugin. Further information: https://msr-apis.portal.azure-api.net/docs/services/academic-search-api/.
+
+## Installation
+
+Install by downloading the 
+1. Download the [latest version](https://github.com/TobiHol/zotero-mas-metadata/releases/latest) of Zotero MAS MetaData
+2. Start Zotero and go to `Tools -> Add-ons -> Tools for all Add-ons (the small, drop-down wheel in the top right corner) -> Install Add-on From File` select the downloaded .xpi file and restart
+3. Generate your api key at https://msr-apis.portal.azure-api.net/products/project-academic-knowledge
+4. Add the key ([primary or secondary](https://docs.microsoft.com/en-us/archive/blogs/mast/why-does-an-azure-storage-account-have-two-access-keys)) to `Tools -> MASMetaData Preferences...`
+
+## Microsoft Academic Search API
+
+### Rate Limits
+
+The free api has a rate limit of 10,000 transactions per month, 3 per second for interpret, 1 per second for evaluate, 6 per minute for calcHistogram. See https://msr-apis.portal.azure-api.net/products.
+
+The plugin currently uses one interpret request and one evaluate request per item. Thus you can update metadata for 5,000 items per month (per subscription) for free.
+
+### Metadata
+
+The plugin currently only adds citation counts to the extra field of items in Zotero, however much more metadata could be used: https://docs.microsoft.com/en-us/academic-services/project-academic-knowledge/. 
+
+The citation count the plugin uses is the estimated citation count (ECC), which is calculated using the Microsoft Academic Graph data to get a more accurate citation count for each publication (at least thats what Microsoft says https://academic.microsoft.com/faq?target=ranking1).
