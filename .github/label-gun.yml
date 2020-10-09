@@ -1,7 +1,0 @@
----
-ignore:
-- chatter
-- deferred
-reopen:
-- "*"
-- "-question"
