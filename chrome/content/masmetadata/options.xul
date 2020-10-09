@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://zotero-platform/content/preferences.css"?>
+
+<!DOCTYPE window SYSTEM "chrome://masmetadata/locale/options.dtd">
+
+<prefwindow id="masmetadata-pref" title="&masmetadata-preferences;" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<stringbundleset id="stringbundleset">
+		<stringbundle id="masmetadata-options" src="chrome://zotero-masmetadata/locale/options.properties"/>
+	</stringbundleset>
+  <prefpane label="&masmetadata-preferences;" id="masmetadata-prefpane">
+    <preferences>
+      <preference id="pref-masmetadata-autoretrieve" name="extensions.masmetadata.autoretrieve" type="string"/>
+      <preference id="pref-masmetadata-logprob" name="extensions.masmetadata.logprob" type="int"/>
+      <preference id="pref-masmetadata-mas-api-key" name="extensions.masmetadata.mas-api-key" type="string"/>
+    </preferences>
+    <groupbox>
+      <caption label="&autoretrieve-caption;"/>
+      <description style="width: 420px">&autoretrieve-desc;</description>
+      <radiogroup id="id-masmetadata-autoretrieve" preference="pref-masmetadata-autoretrieve">
+        <radio label="&autoretrieve-yes-label;" value='yes'/>
+        <radio label="&autoretrieve-no-label;" value='no'/>
+      </radiogroup>
+    </groupbox>
+    <separator class="thin"/>
+
+    <groupbox>
+      <caption label="&logprob-caption;"/>
+      <description style="width: 420px">&logprob-desc;</description>
+      <separator class="thin"/>
+      <hbox  style="margin: 0"  align="center">
+        <label control="id-masmetadata-logprob-label" value="&logprob-label;"/>
+        <textbox id="id-masmetadata-logprob-textbox" preference="pref-masmetadata-logprob" flex="1" type="int"/>
+        <button id="id-masmetadata-logprob-button" label="&default;" oncommand="Zotero.MASMetaData.setPrefToDefault('logprob');"/>      
+      </hbox>
+    </groupbox>
+    <separator class="thin"/>
+    
+    <groupbox>
+      <caption label="&mas-api-key-caption;"/>
+      <description style="width: 420px">&mas-api-key-desc;</description>
+      <separator class="thin"/>
+      <hbox  style="margin: 0"  align="center">
+        <label control="id-masmetadata-mas-api-key-label" value="&mas-api-key-label;"/>
+        <textbox id="id-masmetadata-mas-api-key-textbox" preference="pref-masmetadata-mas-api-key" flex="1" type="password"/>
+      </hbox>
+    </groupbox>
+  </prefpane>
+
+  <script src="options.js"/>
+  <script src="chrome://zotero/content/include.js"/>
+  <script src="chrome://masmetadata/content/include.js"/>
+  
+</prefwindow>

@@ -1,9 +1,4 @@
 language: node_js
-node_js:
-  - "8"
-cache: npm
-install:
-  - npm install
-script:
-  - npm run build
-  - npm run release
+script: make
+after_success:
+  - mv *.xpi masmetadata-build-$TRAVIS_BUILD_NUMBER.xpi

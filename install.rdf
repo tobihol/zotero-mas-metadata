@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+  <Description about="urn:mozilla:install-manifest">
+    <em:name>MAS-Metadata</em:name>
+    <em:description>A Zotero plugin that adds Microsoft Academic Search metadata.</em:description> 
+    <em:id>tobias.holtdirk@gmail.com</em:id>
+    <em:version>0.1.0</em:version>
+    <em:homepageURL>https://github.com/TobiHol/zotero-mas-metadata</em:homepageURL>
+    <em:creator>Tobias Holtdirk</em:creator>
+    <em:updateURL>https://github.com/TobiHol/zotero-mas-metadata/releases/download/release/update.rdf</em:updateURL>
+    <em:type>2</em:type>
+    <em:targetApplication>
+      <Description>
+        <em:id>zotero@chnm.gmu.edu</em:id>
+        <em:minVersion>5.0.79</em:minVersion>
+        <em:maxVersion>5.0.*</em:maxVersion>
+      </Description>
+      <Description>
+        <em:id>juris-m@juris-m.github.io</em:id>
+        <em:minVersion>5.0.79</em:minVersion>
+        <em:maxVersion>5.0.*</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+  </Description>
+</RDF>

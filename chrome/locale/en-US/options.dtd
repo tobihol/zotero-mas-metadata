@@ -1,0 +1,17 @@
+<!ENTITY masmetadata-name "MASMetaData">
+<!ENTITY masmetadata-preferences "MASMetaData Preferences">
+
+<!ENTITY autoretrieve-caption "Autoretrieval for new items">
+<!ENTITY autoretrieve-desc "Set auto retrieval of citations counts when you add a new item">
+<!ENTITY autoretrieve-yes-label "Yes">
+<!ENTITY autoretrieve-no-label "No">
+<!-- TODO make this more readable and add link to ms doc -->
+<!ENTITY logprob-caption "logprob">
+<!ENTITY logprob-desc "Change how far from a perject result an item metadata get included. Default is -50. The lower the more items get included.">
+<!ENTITY logprob-label "logprob:">
+<!ENTITY default "Restore default">
+
+<!ENTITY mas-api-key-caption "MAS API Key">
+<!ENTITY mas-api-key-desc "Insert your Microsoft Academic Search API Key here.">
+<!ENTITY mas-api-key-label "Key:">
+

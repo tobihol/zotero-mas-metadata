@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE overlay SYSTEM "chrome://masmetadata/locale/overlay.dtd">
+
+<overlay
+    id="masmetadata"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+    <stringbundleset id="stringbundleset">
+        <stringbundle
+            id="masmetadata-bundle"
+            src="chrome://masmetadata/locale/masmetadata.properties"/>
+    </stringbundleset>
+    <!-- menu shows when rigth-clicking on papers -->
+    <popup
+        id="zotero-itemmenu">
+        <menu class="menu-iconic" image="chrome://masmetadata/skin/doi@2x.png" id="zotero-itemmenu-masmetadata-menu" label="&masmetadata-menu-label;">
+            <menupopup id="zotero-itemmenu-masmetadata-menupopup">
+                <menuitem
+                    id="zotero-itemmenu-masmetadata-update"
+                    label="&masmetadata-menuitem-label-update;"
+                    oncommand="Zotero.MASMetaData.updateSelectedItems('update');"/>
+                <menuitem
+                    id="zotero-itemmenu-masmetadata-remove"
+                    label="&masmetadata-menuitem-label-remove;"
+                    oncommand="Zotero.MASMetaData.updateSelectedItems('remove');"/>
+            </menupopup>
+        </menu>
+    </popup>
+    
+    <menupopup id="menu_ToolsPopup">
+      <menuitem id="menu_Tools-masmetadata-preferences" label="&masmetadata-preferences-label;" oncommand="Zotero.MASMetaData.openPreferenceWindow();"/>
+    </menupopup>
+
+    <script src="chrome://zotero/content/include.js"/>
+    <script src="chrome://masmetadata/content/include.js"/>
+
+</overlay>

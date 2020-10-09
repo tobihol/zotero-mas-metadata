@@ -1,13 +1,3 @@
-wiki
-gen
-build
-*~
-*.swp
-*.debug
-*.cache
-*.status
-*.js.map
-*.tmp
+/Makefile.in
+.DS_Store
 *.xpi
-node_modules
-.env
