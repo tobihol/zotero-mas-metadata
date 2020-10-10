@@ -18,20 +18,12 @@ Zotero.MASMetaData.ProgressWindow = function(options = {}) {
 		_deferredUntilWindowLoadArgs = [];
 
 	this.getProgressWindow = function(){
-		return _progressWindow
-	}
-	// returns true iff window is closed
-	this.isClosed = function isClosed() {
-		if (!_windowLoaded && !_windowLoading) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+		return _progressWindow;
+	};
 
 	this.setCallOnClick = function callOnClick(change){
 		_callOnClick = change;
-	}
+	};
 
 	/**
 	 * Shows the progress window
@@ -455,17 +447,12 @@ Zotero.MASMetaData.ProgressWindow = function(options = {}) {
 		}
 		if(_closing) self.startCloseTimer();
 	}
-	// TODO: make this work; different from zotero progressWindow
+
 	function _onMouseUp(e) {
 		for (const func of _callOnClick) {
 			func();
-		}
-		// while(_callOnClick){
-		// 	_callOnClick.shift().call();
-		// }
-		// this[_callOnClick[0]]();
-		
-	}
+		};
+	};
 	
 	/**
 	 * Wraps a function to ensure it isn't called until the window is loaded

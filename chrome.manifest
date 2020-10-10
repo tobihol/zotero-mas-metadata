@@ -1,5 +1,5 @@
 content	masmetadata					chrome/content/masmetadata/
-skin	masmetadata	default				chrome/skin/default/masmetadata/
+skin	masmetadata	default			chrome/skin/default/masmetadata/
 
 overlay	chrome://zotero/content/zoteroPane.xul chrome://masmetadata/content/overlay.xul
 

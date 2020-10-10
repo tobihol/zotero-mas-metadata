@@ -1,4 +1,3 @@
-// TODO: Fix semicolons
 Zotero.MASMetaData = new function () {
     const _citeCountStrLength = 7;
     const _extraPrefix = 'ECC';
@@ -19,23 +18,6 @@ Zotero.MASMetaData = new function () {
     let currentRequest = null;
     let currentRequestAborted = false; // TODO: maybe more ellegant way to do this?
 
-
-    let isDebug = function () {
-        return typeof Zotero != 'undefined'
-            && typeof Zotero.Debug != 'undefined'
-            && Zotero.Debug.enabled;
-    };
-
-    // Preference managers
-
-    function getPref(pref) {
-        return Zotero.Prefs.get('extensions.masmetadata.' + pref, true);
-    };
-
-    function setPref(pref, value) {
-        return Zotero.Prefs.set('extensions.masmetadata.' + pref, value, true);
-    };
-
     // Startup - initialize plugin
 
     this.init = function () {
@@ -55,8 +37,8 @@ Zotero.MASMetaData = new function () {
     this.notifierCallback = {
         notify: function (event, type, ids, extraData) {
             if (type == 'item' && event == 'add' && getPref('autoretrieve')) {
-                self.updateItems(Zotero.Items.get(ids), 'update')
-            }
+                self.updateItems(Zotero.Items.get(ids), 'update');
+            };
         }
     };
 
@@ -75,10 +57,12 @@ Zotero.MASMetaData = new function () {
         setPref(pref, -50); //TODO point to the actual default pref 
     };
 
+    /** Update logic */
+
     this.resetState = function (operation) {
         if (this.progressWin) {
             this.progressWin.close();
-        }
+        };
         switch (operation) {
             case 'error':
                 icon = 'chrome://zotero/skin/cross.png';
@@ -133,7 +117,7 @@ Zotero.MASMetaData = new function () {
     };
 
     function itemHasField(item, field) {
-        return Zotero.ItemFields.isValidForType(Zotero.ItemFields.getID(field), item.itemTypeID)
+        return Zotero.ItemFields.isValidForType(Zotero.ItemFields.getID(field), item.itemTypeID);
     }
 
     this.updateItems = function (items, operation) {
@@ -146,7 +130,7 @@ Zotero.MASMetaData = new function () {
         if (items.length === 0 ||
             this.currentItemIndex < this.numberOfItemsToUpdate) {
             return;
-        }
+        };
 
         this.resetState('initial');
         this.numberOfItemsToUpdate = items.length;
@@ -155,16 +139,16 @@ Zotero.MASMetaData = new function () {
         // Progress Windows
         this.progressWin = new this.ProgressWindow({ callOnClick: [] });
         let icon = 'chrome://zotero/skin/toolbar-advanced-search' + (Zotero.hiDPI ? '@2x' : '') + '.png';
-        let headline = ''
+        let headline = '';
         switch (operation) {
             case 'update':
-                headline = 'Getting citations counts'
+                headline = 'Getting citations counts';
                 break;
             case 'remove':
-                headline = 'Removing citation counts'
+                headline = 'Removing citation counts';
                 break;
             default:
-                headline = 'Default headline'
+                headline = 'Default headline';
                 break;
         }
         this.progressWin.changeHeadline(headline, icon);
@@ -174,7 +158,7 @@ Zotero.MASMetaData = new function () {
             currentRequestAborted = true;
             if (currentRequest) {
                 currentRequest.abort();
-            }
+            };
         }, false);
 
         this.updateNextItem(operation);
@@ -186,7 +170,7 @@ Zotero.MASMetaData = new function () {
         if (this.currentItemIndex > this.numberOfItemsToUpdate) {
             this.resetState(operation);
             return;
-        }
+        };
 
         // Progress Windows
         let percent = Math.round(((this.currentItemIndex - 1) / this.numberOfItemsToUpdate) * 100);
@@ -207,13 +191,13 @@ Zotero.MASMetaData = new function () {
                 break;
             default:
                 break;
-        }
+        };
     };
 
     this.removeMetaData = function (item, operation) {
         this.removeCitation(item);
         this.updateNextItem(operation);
-    }
+    };
 
     function formatParams(params) {
         return '?' + Object
@@ -221,15 +205,17 @@ Zotero.MASMetaData = new function () {
             .map(function (key) {
                 return key + '=' + params[key]
             })
-            .join('&')
-    }
+            .join('&');
+    };
+
+    /** Make API Requests */
 
     this.interpretQuery = function (item, operation) {
         let request_type = '/interpret';
         let title = item.getField('title');
         let year = item.getField('year');
         let creators = item.getCreators();
-        let query = title
+        let query = title;
         // adding creators seems to make interpreter worse at detecting if paper doenst exit
         // if (creators && creators.length > 0) {
         //     for (const creator of creators) {
@@ -239,7 +225,7 @@ Zotero.MASMetaData = new function () {
         //         + creator.lastName.toLowerCase()
         //     }
         // }
-        if (year) query += ' ' + year
+        if (year) query += ' ' + year;
         let params = {
             // Request parameters
             'query': query,
@@ -264,19 +250,16 @@ Zotero.MASMetaData = new function () {
         currentRequest = req;
         if (currentRequestAborted) {
             req.abort();
-        }
-        function requestComplete(evt) {
-            // currentRequest = null; // TODO: on other then first fails, check why
-        }
+        };
         function requestSucceeded(evt) {
-            res = req.response
+            res = req.response;
             switch (this.status) {
                 case 200:
                     if (!res.aborted && res.interpretations.length > 0) {
-                        let intp = res.interpretations[0]
+                        let intp = res.interpretations[0];
                         if (intp.logprob > getPref('logprob')) {
-                            let expr = intp.rules[0].output.value
-                            self.evaluateExpr(item, expr, operation)
+                            let expr = intp.rules[0].output.value;
+                            self.evaluateExpr(item, expr, operation);
                         } else {
                             self.updateCitation(item, -1); // TODO print logprob
                             self.updateNextItem(operation);
@@ -284,33 +267,25 @@ Zotero.MASMetaData = new function () {
                     } else {
                         self.resetState('error');
                         alert('MAS api request was aborted.');
-                    }
+                    };
                     break;
                 default:
                     self.resetState('error');
                     if (res.error) {
-                        let error = res.error
+                        let error = res.error;
                         alert('ERROR: ' + this.status + '\n'
                             + 'Code: ' + error.code + '\n'
-                            + 'Message: ' + error.message)
+                            + 'Message: ' + error.message);
                     } else {
                         alert(JSON.stringify(res));
                     }
                     break;
-            }
-        }
-        function requestFailed(evt) {
-            self.resetState('error');
-            alert(evt); //TODO: check if this is fine
-        }
-        function requestCanceled(evt) {
-            currentRequestAborted = false;
-            self.resetState('abort');
-        }
-    }
+            };
+        };
+    };
 
     this.evaluateExpr = function (item, expr, operation) {
-        request_type = '/evaluate'
+        request_type = '/evaluate';
         let params = {
             // Request parameters
             'expr': expr,
@@ -334,16 +309,13 @@ Zotero.MASMetaData = new function () {
         currentRequest = req;
         if (currentRequestAborted) {
             req.abort();
-        }
-        function requestComplete(evt) {
-            // currentRequest = null;
-        }
+        };
         function requestSucceeded(evt) {
-            res = req.response
+            res = req.response;
             switch (this.status) {
                 case 200:
                     if (!res.aborted && res.entities.length > 0) {
-                        let ecc = res.entities[0].ECC
+                        let ecc = res.entities[0].ECC;
                         self.updateCitation(item, ecc);
                         self.updateNextItem(operation);
                     } else {
@@ -354,25 +326,20 @@ Zotero.MASMetaData = new function () {
                 default:
                     self.resetState('error');
                     if (res.error) {
-                        let error = res.error
+                        let error = res.error;
                         alert('ERROR: ' + this.status + '\n'
                             + 'Code: ' + error.code + '\n'
-                            + 'Message: ' + error.message)
+                            + 'Message: ' + error.message);
                     } else {
                         alert(JSON.stringify(res));
                     }
                     break;
-            }
-        }
-        function requestFailed(evt) {
-            self.resetState('error');
-            alert(evt); //TODO: check if this is fine
-        }
-        function requestCanceled(evt) {
-            currentRequestAborted = false;
-            self.resetState('abort');
-        }
-    }
+            };
+        };
+    };
+
+    /** Change Extra Field */
+
     this.removeCitation = function (item) {
         let curExtra = item.getField('extra');
         let matches = curExtra.match(_extraRegex);
@@ -420,7 +387,7 @@ Zotero.MASMetaData = new function () {
     this.padLeftWithZeroes = function (numStr) {
         let output = '';
         let cnt = _citeCountStrLength - numStr.length;
-        for (let i = 0; i < cnt; i++) { output += '0'; }
+        for (let i = 0; i < cnt; i++) { output += '0'; };
         output += numStr;
         return output;
     };
@@ -436,4 +403,34 @@ Zotero.MASMetaData = new function () {
         return '[s' + stalenessCount + ']';
     };
 
-}
+    /** Functions */
+
+    // Preference managers
+    function getPref(pref) {
+        return Zotero.Prefs.get('extensions.masmetadata.' + pref, true);
+    };
+
+    function setPref(pref, value) {
+        return Zotero.Prefs.set('extensions.masmetadata.' + pref, value, true);
+    };
+
+    // check if debug mode is enabled
+    function isDebug() {
+        return typeof Zotero != 'undefined'
+            && typeof Zotero.Debug != 'undefined'
+            && Zotero.Debug.enabled;
+    };
+
+    // Request Handlers
+    function requestComplete(evt) {
+        // currentRequest = null;
+    };
+    function requestFailed(evt) {
+        self.resetState('error');
+        alert(evt); //TODO: check if this is fine
+    };
+    function requestCanceled(evt) {
+        currentRequestAborted = false;
+        self.resetState('abort');
+    };
+};
