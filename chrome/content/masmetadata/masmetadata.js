@@ -41,42 +41,24 @@ Zotero.MASMetaData = new function () {
     this.init = function () {
         this.resetState('initial');
 
-        // Register the callback in Zotero as an item observer
-        let notifierID = Zotero.Notifier.registerObserver(
-            this.notifierCallback, ['item']);
-
+        // Register callbacks in Zotero as item observers
+        if (this.notifierID == null)
+            this.notifierID = Zotero.Notifier.registerObserver(this.notifierCallback, ['item']);
         // Unregister callback when the window closes (important to avoid a memory leak)
         window.addEventListener('unload', function (e) {
-            Zotero.Notifier.unregisterObserver(notifierID);
+            Zotero.Notifier.unregisterObserver(self.notifierID);
+            self.notifierID = null;
         }, false);
 
     };
 
     this.notifierCallback = {
         notify: function (event, type, ids, extraData) {
-            if (event == 'add') {
-                if (getPref('autoretrieve') == 'yes') {
-                    this.updateItems(Zotero.Items.get(ids), 'update')
-                }
+            if (type == 'item' && event == 'add' && getPref('autoretrieve')) {
+                self.updateItems(Zotero.Items.get(ids), 'update')
             }
         }
     };
-
-    // Controls for Tools menu
-
-    // *********** Set the checkbox checks, frompref
-    this.setCheck = function () {
-        let tools_yes = document.getElementById('menu_Tools-masmetadata-menu-popup-yes');
-        let tools_no = document.getElementById('menu_Tools-masmetadata-menu-popup-no');
-        let pref = getPref('autoretrieve');
-        tools_yes.setAttribute('checked', Boolean(pref === 'yes'));
-        tools_no.setAttribute('checked', Boolean(pref === 'no'));
-    };
-
-    // *********** Change the checkbox, topref
-    // this.changePref = function changePref(option) {
-    //     setPref('autoretrieve', option);
-    // };
 
     /**
      * Open masmetadata preference window
@@ -150,10 +132,16 @@ Zotero.MASMetaData = new function () {
         this.updateItems(ZoteroPane.getSelectedItems(), operation);
     };
 
+    function itemHasField(item, field) {
+        return Zotero.ItemFields.isValidForType(Zotero.ItemFields.getID(field), item.itemTypeID)
+    }
+
     this.updateItems = function (items, operation) {
-        //TODO is this enough exclusion?
-        items = items.filter(item => item.itemTypeID != Zotero.ItemTypes.getID('attachment'))
-        items = items.filter(item => item.getField('title'))
+        //TODO is this enough filter?
+        // items = items.filter(item => item.itemTypeID != Zotero.ItemTypes.getID('attachment'));
+        // items = items.filter(item => item.isTopLevelItem());
+        items = items.filter(item => item.getField('title'));
+        items = items.filter(item => itemHasField(item, 'extra'));
 
         if (items.length === 0 ||
             this.currentItemIndex < this.numberOfItemsToUpdate) {
@@ -181,10 +169,6 @@ Zotero.MASMetaData = new function () {
         }
         this.progressWin.changeHeadline(headline, icon);
         this.progressWin.progress = new this.progressWin.ItemProgress();
-        // this.progressWin.setCallOnClick([
-        //     function() {changeHeadline('Interrupting...')},
-        //     function() {setCallOnClick([])}
-        // ]);
         this.progressWin.show();
         this.progressWin.getProgressWindow().addEventListener('mouseup', function () {
             currentRequestAborted = true;
@@ -207,7 +191,7 @@ Zotero.MASMetaData = new function () {
         // Progress Windows
         let percent = Math.round(((this.currentItemIndex - 1) / this.numberOfItemsToUpdate) * 100);
         this.progressWin.progress.setProgress(percent);
-        this.progressWin.progress.setText('Update Item ' + this.currentItemIndex + ' of ' + this.numberOfItemsToUpdate + ' (click to abort)'); // TODO: better description
+        this.progressWin.progress.setText('Update Item ' + this.currentItemIndex + ' of ' + this.numberOfItemsToUpdate + ' (click to abort)');
 
         this.updateItem(
             this.itemsToUpdate[this.currentItemIndex - 1], operation);
@@ -239,7 +223,7 @@ Zotero.MASMetaData = new function () {
             })
             .join('&')
     }
-    // TODO make this process interruptable
+
     this.interpretQuery = function (item, operation) {
         let request_type = '/interpret';
         let title = item.getField('title');
@@ -271,14 +255,14 @@ Zotero.MASMetaData = new function () {
         req.open('GET', url, true);
         req.setRequestHeader('Ocp-Apim-Subscription-Key', getPref('mas-api-key'));
         req.responseType = 'json';
-        // req.addEventListener('progress', updateProgress); // TODO: add progress bar maybe
+        // req.addEventListener('progress', updateProgress);
         req.addEventListener('loadend', requestComplete);
         req.addEventListener('load', requestSucceeded);
         req.addEventListener('error', requestFailed);
         req.addEventListener('abort', requestCanceled);
         req.send();
         currentRequest = req;
-        if(currentRequestAborted) {
+        if (currentRequestAborted) {
             req.abort();
         }
         function requestComplete(evt) {
@@ -304,11 +288,14 @@ Zotero.MASMetaData = new function () {
                     break;
                 default:
                     self.resetState('error');
-                    let error = res.error
-                    alert('ERROR: ' + this.status + '\n'
-                        + 'Code: ' + error.code + '\n'
-                        + 'Message: ' + error.message)
-                    // alert(JSON.stringify(res));
+                    if (res.error) {
+                        let error = res.error
+                        alert('ERROR: ' + this.status + '\n'
+                            + 'Code: ' + error.code + '\n'
+                            + 'Message: ' + error.message)
+                    } else {
+                        alert(JSON.stringify(res));
+                    }
                     break;
             }
         }
@@ -345,7 +332,7 @@ Zotero.MASMetaData = new function () {
         req.addEventListener('abort', requestCanceled);
         req.send();
         currentRequest = req;
-        if(currentRequestAborted) {
+        if (currentRequestAborted) {
             req.abort();
         }
         function requestComplete(evt) {
@@ -366,12 +353,14 @@ Zotero.MASMetaData = new function () {
                     break;
                 default:
                     self.resetState('error');
-                    let error = res.error
-                    alert('Error\n'
-                        + 'Code: ' + error.code + '\n'
-                        + 'Message: ' + error.message)
-
-                    // alert(JSON.stringify(res));
+                    if (res.error) {
+                        let error = res.error
+                        alert('ERROR: ' + this.status + '\n'
+                            + 'Code: ' + error.code + '\n'
+                            + 'Message: ' + error.message)
+                    } else {
+                        alert(JSON.stringify(res));
+                    }
                     break;
             }
         }
@@ -409,32 +398,7 @@ Zotero.MASMetaData = new function () {
         this.numberOfUpdatedItems++; // TODO: check if this counter can be improved e.g. give more informaiton than currently 
         if (isDebug()) Zotero.debug('[mas-metadata] '
             + 'updating extra field with new cite count');
-        // } else {
-        //     if (matches[1] === '') {
-        //         if (isDebug()) Zotero.debug('[mas-metadata] '
-        //             + 'updating extra field that contains no zsc content');
-        //         newExtra += this.buildCiteCountString(citeCount);
-        //     } else if (matches[1] === _noData || matches[1] === 'No Citation Data') {
-        //         if (isDebug()) Zotero.debug('[mas-metadata] '
-        //             + 'updating extra field that contains 'no data'');
-        //         newExtra += this.buildCiteCountString(citeCount);
-        //     } else {
-        //         let oldCiteCount = parseInt(matches[1]);
-        //         newExtra += this.buildCiteCountString(oldCiteCount);
-        //         if (isDebug()) Zotero.debug('[mas-metadata] '
-        //             + 'updating extra field that contains cite count');
-        //     }
-
-        //     if (!matches[2]) {
-        //         if (isDebug()) Zotero.debug('[mas-metadata] '
-        //             + 'marking extra field as stale');
-        //         newExtra += this.buildStalenessString(0);
-        //     } else {
-        //         if (isDebug()) Zotero.debug('[mas-metadata] '
-        //             + 'increasing staleness numberOfUpdatedItems in extra field');
-        //         newExtra += this.buildStalenessString((parseInt(matches[2]) + 1) % 10);
-        //     }
-        // }
+            
         // TODO make this cleaner related to regex
         if (/^\s\n/.test(matches[3]) || matches[3] === '') {
             // do nothing, since the separator is already correct or not needed at all

@@ -16,12 +16,18 @@ Install by downloading the
 
 ### Rate Limits
 
-The free api has a rate limit of 10,000 transactions per month, 3 per second for interpret, 1 per second for evaluate, 6 per minute for calcHistogram. See https://msr-apis.portal.azure-api.net/products.
+The free api has a rate limit of 10,000 transactions per month, 3 per second for interpret, 1 per second for evaluate, 6 per minute for calcHistogram.
 
 The plugin currently uses one interpret request and one evaluate request per item. Thus you can update metadata for 5,000 items per month (per subscription) for free.
 
-### Metadata
+### Citation Count
 
 The plugin currently only adds citation counts to the extra field of items in Zotero, however much more metadata could be used: https://docs.microsoft.com/en-us/academic-services/project-academic-knowledge/. 
 
-The citation count the plugin uses is the estimated citation count (ECC), which is calculated using the Microsoft Academic Graph data to get a more accurate citation count for each publication (at least thats what Microsoft says https://academic.microsoft.com/faq?target=ranking1).
+The citation count the plugin uses is the estimated citation count (`ECC`), which is calculated using the Microsoft Academic Graph data to get a more accurate citation count for each publication (at least thats what Microsoft says https://academic.microsoft.com/faq?target=ranking1).
+
+### Logprob
+
+Sucessfull query responses from the MAS API come with a probability (`prob`) value between 0 and 1. This value determines how likely the response is correct (higher - more likely to be correct).
+
+In the setting `Tools -> MASMetaData Preferences...` you can edit a cutoff probability. Responses with lower probability than the cutoff are excluded. The setting use the logarithm of the probability (`logprob`) for ease of use.

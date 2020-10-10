@@ -1,17 +1,19 @@
-<!ENTITY masmetadata-name "MASMetaData">
-<!ENTITY masmetadata-preferences "MASMetaData Preferences">
+<!ENTITY masmetadata-name "MAS MetaData">
+<!ENTITY masmetadata-preferences "MAS MetaData Preferences">
 
-<!ENTITY autoretrieve-caption "Autoretrieval for new items">
-<!ENTITY autoretrieve-desc "Set auto retrieval of citations counts when you add a new item">
-<!ENTITY autoretrieve-yes-label "Yes">
-<!ENTITY autoretrieve-no-label "No">
-<!-- TODO make this more readable and add link to ms doc -->
-<!ENTITY logprob-caption "logprob">
-<!ENTITY logprob-desc "Change how far from a perject result an item metadata get included. Default is -50. The lower the more items get included.">
+<!ENTITY general-settings "General Settings">
+<!ENTITY autoretrieve-label "Automatically retrieve metadata of new items">
+
+<!ENTITY advanced-settings "Advanced Settings">
+<!ENTITY logprob-desc "Change the cutoff probability. API Responses with a lower probability value than the cutoff are excluded.">
 <!ENTITY logprob-label "logprob:">
-<!ENTITY default "Restore default">
+<!ENTITY default "Restore default (-50)">
 
 <!ENTITY mas-api-key-caption "MAS API Key">
-<!ENTITY mas-api-key-desc "Insert your Microsoft Academic Search API Key here.">
-<!ENTITY mas-api-key-label "Key:">
+<!ENTITY mas-api-key-generate "If you do not have a key you can generate one ">
+<!ENTITY mas-api-key-site "here">
+<!ENTITY mas-api-key-label "Key: ">
+
+<!ENTITY for-more-information "For more information see the ">
+<!ENTITY mas-metadata-github-page "MAS MetaData github page">
 

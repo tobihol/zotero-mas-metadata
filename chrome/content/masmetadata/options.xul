@@ -10,22 +10,18 @@
 	</stringbundleset>
   <prefpane label="&masmetadata-preferences;" id="masmetadata-prefpane">
     <preferences>
-      <preference id="pref-masmetadata-autoretrieve" name="extensions.masmetadata.autoretrieve" type="string"/>
+      <preference id="pref-masmetadata-autoretrieve" name="extensions.masmetadata.autoretrieve" type="bool"/>
       <preference id="pref-masmetadata-logprob" name="extensions.masmetadata.logprob" type="int"/>
       <preference id="pref-masmetadata-mas-api-key" name="extensions.masmetadata.mas-api-key" type="string"/>
     </preferences>
     <groupbox>
-      <caption label="&autoretrieve-caption;"/>
-      <description style="width: 420px">&autoretrieve-desc;</description>
-      <radiogroup id="id-masmetadata-autoretrieve" preference="pref-masmetadata-autoretrieve">
-        <radio label="&autoretrieve-yes-label;" value='yes'/>
-        <radio label="&autoretrieve-no-label;" value='no'/>
-      </radiogroup>
+      <caption label="&general-settings;"/>
+      <checkbox id="id-masmetadata-autoretrieve" label="&autoretrieve-label;" preference="pref-masmetadata-autoretrieve"/>
     </groupbox>
     <separator class="thin"/>
 
     <groupbox>
-      <caption label="&logprob-caption;"/>
+      <caption label="&advanced-settings;"/>
       <description style="width: 420px">&logprob-desc;</description>
       <separator class="thin"/>
       <hbox  style="margin: 0"  align="center">
@@ -38,13 +34,27 @@
     
     <groupbox>
       <caption label="&mas-api-key-caption;"/>
-      <description style="width: 420px">&mas-api-key-desc;</description>
+      <hbox style="margin: 0">
+        <label style="margin-right:0px" value="&mas-api-key-generate;"/>
+        <label style="margin-left:0px; margin-right:0px" class="text-link" onclick="Zotero.ZotFile.Utils.loadURI('https://msr-apis.portal.azure-api.net/products/project-academic-knowledge');" value="&mas-api-key-site;"/>
+        <label style="margin-left:0px; margin-right:0px" value="."/>
+      </hbox>
       <separator class="thin"/>
       <hbox  style="margin: 0"  align="center">
         <label control="id-masmetadata-mas-api-key-label" value="&mas-api-key-label;"/>
         <textbox id="id-masmetadata-mas-api-key-textbox" preference="pref-masmetadata-mas-api-key" flex="1" type="password"/>
       </hbox>
     </groupbox>
+    <separator class="thin"/>
+
+    <hbox style="margin: 0">
+      <label style="margin-right:0px" value="&for-more-information;"/>
+      <label style="margin-left:0px; margin-right:0px" class="text-link" onclick="Zotero.ZotFile.Utils.loadURI('https://github.com/TobiHol/zotero-mas-metadata');" value="&mas-metadata-github-page;"/>
+      <label style="margin-left:0px; margin-right:0px" value="."/>
+    </hbox>
+
+    <separator/>
+
   </prefpane>
 
   <script src="options.js"/>
