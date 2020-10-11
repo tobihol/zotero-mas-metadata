@@ -1,16 +1,17 @@
 # Zotero MAS MetaData
 
-A [Zotero](https://github.com/zotero/zotero.git) plugin that uses the Academic Search Api provided by the Project Academic Knowledge from Microsoft to add more metadata to Zotero. Currently only adds citation counts to the extra field of items in Zotero. This will be extended upon in future versions.
+MAS MetaData is a [Zotero](https://github.com/zotero/zotero.git) plugin that uses Microsoft Academic Search API (MAS) to add more metadata to Zotero. Currently it only adds citation counts to the extra field of items in Zotero. This will be extended upon in future versions.
 
-You need to generate an api key for the Microsoft Academic Search (MAS) API to use this plugin. Further information: https://msr-apis.portal.azure-api.net/docs/services/academic-search-api/.
+You need to generate an api key for the Microsoft Academic Search (MAS) API to use this plugin. The MAS API is provided by the Project Academic Knowledge from Microsoft. 
+Docs: 
+https://msr-apis.portal.azure-api.net/docs/services/academic-search-api/, https://docs.microsoft.com/en-us/academic-services/project-academic-knowledge/
 
 This plugin is based in part on [Zotero Google Scholar Citations](https://github.com/MaxKuehn/zotero-scholar-citations.git) and [Zotero DOI Manager](https://github.com/bwiernik/zotero-shortdoi).
 
 ## Installation
 
-Install by downloading the 
 1. Download the [latest version](https://github.com/TobiHol/zotero-mas-metadata/releases/latest) of Zotero MAS MetaData
-2. Start Zotero and go to `Tools -> Add-ons -> Tools for all Add-ons (the small, drop-down wheel in the top right corner) -> Install Add-on From File` select the downloaded .xpi file and restart
+2. Start Zotero and go to `Tools -> Add-ons -> Tools for all Add-ons (wheel in the top right corner) -> Install Add-on From File` select the downloaded .xpi file and restart
 3. Generate your api key at https://msr-apis.portal.azure-api.net/products/project-academic-knowledge
 4. Add the key ([primary or secondary](https://docs.microsoft.com/en-us/archive/blogs/mast/why-does-an-azure-storage-account-have-two-access-keys)) to `Tools -> MASMetaData Preferences... -> MAS API Key`
 
@@ -24,9 +25,7 @@ The plugin currently uses one interpret request and one evaluate request per ite
 
 ### Citation Count
 
-The plugin currently only adds citation counts to the extra field of items in Zotero, however much more metadata could be used: https://docs.microsoft.com/en-us/academic-services/project-academic-knowledge/. 
-
-The citation count the plugin uses is the estimated citation count (`ECC`), which is calculated using the Microsoft Academic Graph data to get a more accurate citation count for each publication (at least thats what Microsoft says https://academic.microsoft.com/faq?target=ranking1).
+The plugin adds citation counts to the extra field of items in Zotero. The citation count used is the estimated citation count (`ECC`) from Microsoft , which is calculated using the Microsoft Academic Graph data to get a more accurate citation count for each publication (at least thats what Microsoft says https://academic.microsoft.com/faq?target=ranking1).
 
 ### Logprob
 
