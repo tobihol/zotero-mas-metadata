@@ -52,7 +52,7 @@ Zotero.MASMetaData = new function () {
     };
 
     this.setPrefToDefault = function (pref) {
-        setPref(pref, -50); //TODO point to the actual default pref 
+        clearPref(pref);
     };
 
     /** Update logic */
@@ -422,6 +422,10 @@ Zotero.MASMetaData = new function () {
 
     function setPref(pref, value) {
         return Zotero.Prefs.set('extensions.masmetadata.' + pref, value, true);
+    };
+
+    function clearPref(pref) {
+        return Zotero.Prefs.clear('extensions.masmetadata.' + pref, true);
     };
 
     // check if debug mode is enabled

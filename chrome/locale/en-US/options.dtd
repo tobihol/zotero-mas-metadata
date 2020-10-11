@@ -7,7 +7,7 @@
 <!ENTITY advanced-settings "Advanced Settings">
 <!ENTITY logprob-desc "Change the cutoff probability. API Responses with a lower probability value than the cutoff are excluded.">
 <!ENTITY logprob-label "logprob:">
-<!ENTITY default "Restore default (-50)">
+<!ENTITY default "Restore default">
 
 <!ENTITY mas-api-key-caption "MAS API Key">
 <!ENTITY mas-api-key-generate "If you do not have a key you can generate one ">
@@ -16,4 +16,3 @@
 
 <!ENTITY for-more-information "For more information see the ">
 <!ENTITY mas-metadata-github-page "MAS MetaData github page">
-
