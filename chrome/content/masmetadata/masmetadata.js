@@ -15,8 +15,6 @@ Zotero.MASMetaData = new function () {
         + '([^]*)$'
     );
     const self = this;
-    let currentRequest = null;
-    let currentRequestAborted = false; // TODO: maybe more ellegant way to do this?
 
     // Startup - initialize plugin
 
@@ -110,6 +108,8 @@ Zotero.MASMetaData = new function () {
         this.itemsToUpdate = null;
         this.currentItemIndex = 0;
         this.numberOfUpdatedItems = 0;
+        this.currentRequest = null;
+        this.currentRequestAborted = false;
     };
 
     this.updateSelectedItems = function (operation) {
@@ -155,9 +155,9 @@ Zotero.MASMetaData = new function () {
         this.progressWin.progress = new this.progressWin.ItemProgress();
         this.progressWin.show();
         this.progressWin.getProgressWindow().addEventListener('mouseup', function () {
-            currentRequestAborted = true;
-            if (currentRequest) {
-                currentRequest.abort();
+            self.currentRequestAborted = true;
+            if (self.currentRequest) {
+                self.currentRequest.abort();
             };
         }, false);
 
@@ -247,9 +247,14 @@ Zotero.MASMetaData = new function () {
         req.addEventListener('error', requestFailed);
         req.addEventListener('abort', requestCanceled);
         req.send();
-        currentRequest = req;
-        if (currentRequestAborted) {
+        this.currentRequest = req;
+        if (this.currentRequestAborted) {
             req.abort();
+        };
+        function requestComplete(evt) {
+            if (self.currentRequest === req) {
+                self.currentRequest = null;
+            };
         };
         function requestSucceeded(evt) {
             res = req.response;
@@ -306,9 +311,14 @@ Zotero.MASMetaData = new function () {
         req.addEventListener('error', requestFailed);
         req.addEventListener('abort', requestCanceled);
         req.send();
-        currentRequest = req;
-        if (currentRequestAborted) {
+        this.currentRequest = req;
+        if (this.currentRequestAborted) {
             req.abort();
+        };
+        function requestComplete(evt) {
+            if (self.currentRequest === req) {
+                self.currentRequest = null;
+            };
         };
         function requestSucceeded(evt) {
             res = req.response;
@@ -422,15 +432,13 @@ Zotero.MASMetaData = new function () {
     };
 
     // Request Handlers
-    function requestComplete(evt) {
-        // currentRequest = null;
-    };
     function requestFailed(evt) {
         self.resetState('error');
         alert(evt); //TODO: check if this is fine
     };
+    
     function requestCanceled(evt) {
-        currentRequestAborted = false;
+        self.currentRequestAborted = false;
         self.resetState('abort');
     };
 };
