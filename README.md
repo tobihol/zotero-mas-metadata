@@ -4,6 +4,8 @@ A Zotero plugin for adding Microsoft Academic Search (MAS) metadata. Currently o
 
 You need to generate an api key for the Microsoft Academic Search API to use this plugin. Further information: https://msr-apis.portal.azure-api.net/docs/services/academic-search-api/.
 
+This plugin is based in part on [Zotero Google Scholar Citations](https://github.com/MaxKuehn/zotero-scholar-citations.git) and [Zotero DOI Manager](https://github.com/bwiernik/zotero-shortdoi).
+
 ## Installation
 
 Install by downloading the 
