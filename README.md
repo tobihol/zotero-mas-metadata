@@ -1,8 +1,8 @@
 # Zotero MAS MetaData
 
-A Zotero plugin for adding Microsoft Academic Search (MAS) metadata. Currently only adds citation counts to the extra field of items in Zotero.
+A [Zotero](https://github.com/zotero/zotero.git) plugin that uses the Academic Search Api provided by the Project Academic Knowledge from Microsoft to add more metadata to Zotero. Currently only adds citation counts to the extra field of items in Zotero. This will be extended upon in future versions.
 
-You need to generate an api key for the Microsoft Academic Search API to use this plugin. Further information: https://msr-apis.portal.azure-api.net/docs/services/academic-search-api/.
+You need to generate an api key for the Microsoft Academic Search (MAS) API to use this plugin. Further information: https://msr-apis.portal.azure-api.net/docs/services/academic-search-api/.
 
 This plugin is based in part on [Zotero Google Scholar Citations](https://github.com/MaxKuehn/zotero-scholar-citations.git) and [Zotero DOI Manager](https://github.com/bwiernik/zotero-shortdoi).
 
@@ -12,7 +12,7 @@ Install by downloading the
 1. Download the [latest version](https://github.com/TobiHol/zotero-mas-metadata/releases/latest) of Zotero MAS MetaData
 2. Start Zotero and go to `Tools -> Add-ons -> Tools for all Add-ons (the small, drop-down wheel in the top right corner) -> Install Add-on From File` select the downloaded .xpi file and restart
 3. Generate your api key at https://msr-apis.portal.azure-api.net/products/project-academic-knowledge
-4. Add the key ([primary or secondary](https://docs.microsoft.com/en-us/archive/blogs/mast/why-does-an-azure-storage-account-have-two-access-keys)) to `Tools -> MASMetaData Preferences...`
+4. Add the key ([primary or secondary](https://docs.microsoft.com/en-us/archive/blogs/mast/why-does-an-azure-storage-account-have-two-access-keys)) to `Tools -> MASMetaData Preferences... -> MAS API Key`
 
 ## Microsoft Academic Search API
 
@@ -30,6 +30,6 @@ The citation count the plugin uses is the estimated citation count (`ECC`), whic
 
 ### Logprob
 
-Sucessfull query responses from the MAS API come with a probability (`prob`) value between 0 and 1. This value determines how likely the response is correct (higher - more likely to be correct).
+Successfully query responses from the MAS API come with a probability (`prob`) value between 0 and 1. This value determines how likely the response is to be correct (higher - more likely to be correct).
 
-In the setting `Tools -> MASMetaData Preferences...` you can edit a cutoff probability. Responses with lower probability than the cutoff are excluded. The setting use the logarithm of the probability (`logprob`) for ease of use.
+In the setting `Tools -> MASMetaData Preferences... -> Advanced Settings` you can edit a cutoff probability. Responses with lower probability than the cutoff are excluded. The setting uses the logarithm of the probability (`logprob`) for ease of use.
