@@ -14,7 +14,7 @@ Zotero.MASMetaData = new function () {
         + '\\[?s?(\\d|)\\]?'
         + '([^]*)$'
     );
-    const self = this;
+    const _this = this;
 
     // Startup - initialize plugin
 
@@ -26,8 +26,8 @@ Zotero.MASMetaData = new function () {
             this.notifierID = Zotero.Notifier.registerObserver(this.notifierCallback, ['item']);
         // Unregister callback when the window closes (important to avoid a memory leak)
         window.addEventListener('unload', function (e) {
-            Zotero.Notifier.unregisterObserver(self.notifierID);
-            self.notifierID = null;
+            Zotero.Notifier.unregisterObserver(_this.notifierID);
+            _this.notifierID = null;
         }, false);
 
     };
@@ -35,7 +35,7 @@ Zotero.MASMetaData = new function () {
     this.notifierCallback = {
         notify: function (event, type, ids, extraData) {
             if (type == 'item' && event == 'add' && getPref('autoretrieve')) {
-                self.updateItems(Zotero.Items.get(ids), 'update');
+                _this.updateItems(Zotero.Items.get(ids), 'update');
             };
         }
     };
@@ -155,9 +155,9 @@ Zotero.MASMetaData = new function () {
         this.progressWin.progress = new this.progressWin.ItemProgress();
         this.progressWin.show();
         this.progressWin.getProgressWindow().addEventListener('mouseup', function () {
-            self.currentRequestAborted = true;
-            if (self.currentRequest) {
-                self.currentRequest.abort();
+            _this.currentRequestAborted = true;
+            if (_this.currentRequest) {
+                _this.currentRequest.abort();
             };
         }, false);
 
@@ -214,9 +214,9 @@ Zotero.MASMetaData = new function () {
         let request_type = '/interpret';
         let title = item.getField('title');
         let year = item.getField('year');
-        let creators = item.getCreators();
+        // let creators = item.getCreators();
         let query = title;
-        // adding creators seems to make interpreter worse at detecting if paper doenst exit
+        // adding creators seems to make interpreter worse at detecting if paper exists (prob is not as far apart between ex and not ex)
         // if (creators && creators.length > 0) {
         //     for (const creator of creators) {
         //         query += ' '
@@ -236,10 +236,16 @@ Zotero.MASMetaData = new function () {
             'model': 'latest',
         };
         let url = _baseUrl + request_type + formatParams(params);
-        if (isDebug()) Zotero.debug('[mas-metadata]: The url for MAS query: ' + url);
+        Zotero.debug('[mas-metadata]: The url for MAS query: ' + url);
         let req = new XMLHttpRequest();
         req.open('GET', url, true);
-        req.setRequestHeader('Ocp-Apim-Subscription-Key', getPref('mas-api-key'));
+        let key = getAPIKey();
+        if(!key) { // TODO make this cleaner 
+            _this.resetState('error');
+            Zotero.alert(null, 'MAS MetaData', 'No API Key found. \nGo to `Tools -> MASMetaData Preferences... -> MAS API Key` to insert a key.');
+            return;
+        };
+        req.setRequestHeader('Ocp-Apim-Subscription-Key', key);
         req.responseType = 'json';
         // req.addEventListener('progress', updateProgress);
         req.addEventListener('loadend', requestComplete);
@@ -252,8 +258,8 @@ Zotero.MASMetaData = new function () {
             req.abort();
         };
         function requestComplete(evt) {
-            if (self.currentRequest === req) {
-                self.currentRequest = null;
+            if (_this.currentRequest === req) {
+                _this.currentRequest = null;
             };
         };
         function requestSucceeded(evt) {
@@ -264,25 +270,25 @@ Zotero.MASMetaData = new function () {
                         let intp = res.interpretations[0];
                         if (intp.logprob > getPref('logprob')) {
                             let expr = intp.rules[0].output.value;
-                            self.evaluateExpr(item, expr, operation);
+                            _this.evaluateExpr(item, expr, operation);
                         } else {
-                            self.updateCitation(item, -1); // TODO print logprob
-                            self.updateNextItem(operation);
+                            _this.updateCitation(item, -1); // TODO print logprob
+                            _this.updateNextItem(operation);
                         }
                     } else {
-                        self.resetState('error');
-                        alert('MAS api request was aborted.');
+                        _this.resetState('error');
+                        Zotero.alert(null, 'MAS MetaData', 'MAS api request was aborted.');
                     };
                     break;
                 default:
-                    self.resetState('error');
+                    _this.resetState('error');
                     if (res.error) {
                         let error = res.error;
-                        alert('ERROR: ' + this.status + '\n'
+                        Zotero.alert(null, 'MAS MetaData', 'ERROR: ' + this.status + '\n'
                             + 'Code: ' + error.code + '\n'
                             + 'Message: ' + error.message);
                     } else {
-                        alert(JSON.stringify(res));
+                        Zotero.alert(null, 'MAS MetaData', JSON.stringify(res));
                     }
                     break;
             };
@@ -301,10 +307,16 @@ Zotero.MASMetaData = new function () {
             'attributes': 'CC,ECC',
         };
         let url = _baseUrl + request_type + formatParams(params);
-        if (isDebug()) Zotero.debug('[mas-metadata]: The url for MAS evaluate: ' + url);
+        Zotero.debug('[mas-metadata]: The url for MAS evaluate: ' + url);
         let req = new XMLHttpRequest();
         req.open('GET', url, true);
-        req.setRequestHeader('Ocp-Apim-Subscription-Key', getPref('mas-api-key'));
+        let key = getAPIKey();
+        if(!key) { // TODO make this cleaner 
+            _this.resetState('error');
+            Zotero.alert(null, 'MAS MetaData', 'No API Key found. \nGo to `Tools -> MASMetaData Preferences... -> MAS API Key` to insert a key.');
+            return;
+        };
+        req.setRequestHeader('Ocp-Apim-Subscription-Key', key);
         req.responseType = 'json';
         req.addEventListener('loadend', requestComplete);
         req.addEventListener('load', requestSucceeded);
@@ -316,8 +328,8 @@ Zotero.MASMetaData = new function () {
             req.abort();
         };
         function requestComplete(evt) {
-            if (self.currentRequest === req) {
-                self.currentRequest = null;
+            if (_this.currentRequest === req) {
+                _this.currentRequest = null;
             };
         };
         function requestSucceeded(evt) {
@@ -326,22 +338,22 @@ Zotero.MASMetaData = new function () {
                 case 200:
                     if (!res.aborted && res.entities.length > 0) {
                         let ecc = res.entities[0].ECC;
-                        self.updateCitation(item, ecc);
-                        self.updateNextItem(operation);
+                        _this.updateCitation(item, ecc);
+                        _this.updateNextItem(operation);
                     } else {
-                        self.resetState('error');
-                        alert('MAS api request was aborted.');
+                        _this.resetState('error');
+                        Zotero.alert(null, 'MAS MetaData', 'MAS API request was aborted.');
                     }
                     break;
                 default:
-                    self.resetState('error');
+                    _this.resetState('error');
                     if (res.error) {
                         let error = res.error;
-                        alert('ERROR: ' + this.status + '\n'
+                        Zotero.alert(null, 'MAS MetaData', 'ERROR: ' + this.status + '\n'
                             + 'Code: ' + error.code + '\n'
                             + 'Message: ' + error.message);
                     } else {
-                        alert(JSON.stringify(res));
+                        Zotero.alert(null, 'MAS MetaData', JSON.stringify(res));
                     }
                     break;
             };
@@ -362,8 +374,7 @@ Zotero.MASMetaData = new function () {
         item.setField('extra', newExtra);
 
         try { item.saveTx(); } catch (e) {
-            if (isDebug()) Zotero.debug('[mas-metadata] '
-                + 'could not update extra content: ' + e);
+            Zotero.logError(e);
         }
     };
 
@@ -373,8 +384,6 @@ Zotero.MASMetaData = new function () {
         let newExtra = '';
         newExtra += this.buildCiteCountString(citeCount);
         this.numberOfUpdatedItems++; // TODO: check if this counter can be improved e.g. give more informaiton than currently 
-        if (isDebug()) Zotero.debug('[mas-metadata] '
-            + 'updating extra field with new cite count');
             
         // TODO make this cleaner related to regex
         if (/^\s\n/.test(matches[3]) || matches[3] === '') {
@@ -389,8 +398,7 @@ Zotero.MASMetaData = new function () {
         item.setField('extra', newExtra);
 
         try { item.saveTx(); } catch (e) {
-            if (isDebug()) Zotero.debug('[mas-metadata] '
-                + 'could not update extra content: ' + e);
+            Zotero.logError(e);
         }
     };
 
@@ -428,21 +436,18 @@ Zotero.MASMetaData = new function () {
         return Zotero.Prefs.clear('extensions.masmetadata.' + pref, true);
     };
 
-    // check if debug mode is enabled
-    function isDebug() {
-        return typeof Zotero != 'undefined'
-            && typeof Zotero.Debug != 'undefined'
-            && Zotero.Debug.enabled;
-    };
+    function getAPIKey() {
+        return Zotero.MASMetaData.APIKey.getAPIKey();
+    }
 
     // Request Handlers
     function requestFailed(evt) {
-        self.resetState('error');
-        alert(evt); //TODO: check if this is fine
+        _this.resetState('error');
+        Zotero.alert(null, 'MAS MetaData', evt); //TODO: check if this is fine
     };
     
     function requestCanceled(evt) {
-        self.currentRequestAborted = false;
-        self.resetState('abort');
+        _this.currentRequestAborted = false;
+        _this.resetState('abort');
     };
 };

@@ -4,7 +4,8 @@
 
 <!DOCTYPE window SYSTEM "chrome://masmetadata/locale/options.dtd">
 
-<prefwindow id="masmetadata-pref" title="&masmetadata-preferences;" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<prefwindow id="masmetadata-pref" title="&masmetadata-preferences;" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+  onload="document.getElementById('id-masmetadata-mas-api-key-textbox').value = Zotero.MASMetaData.APIKey.getAPIKey();">
 	<stringbundleset id="stringbundleset">
 		<stringbundle id="masmetadata-options" src="chrome://zotero-masmetadata/locale/options.properties"/>
 	</stringbundleset>
@@ -12,7 +13,6 @@
     <preferences>
       <preference id="pref-masmetadata-autoretrieve" name="extensions.masmetadata.autoretrieve" type="bool"/>
       <preference id="pref-masmetadata-logprob" name="extensions.masmetadata.logprob" type="int"/>
-      <preference id="pref-masmetadata-mas-api-key" name="extensions.masmetadata.mas-api-key" type="string"/>
     </preferences>
     <groupbox>
       <caption label="&general-settings;"/>
@@ -42,7 +42,9 @@
       <separator class="thin"/>
       <hbox  style="margin: 0"  align="center">
         <label control="id-masmetadata-mas-api-key-label" value="&mas-api-key-label;"/>
-        <textbox id="id-masmetadata-mas-api-key-textbox" preference="pref-masmetadata-mas-api-key" flex="1" type="password"/>
+        <textbox id="id-masmetadata-mas-api-key-textbox" flex="1" type="password"
+          clickSelectsAll = "true"
+          onchange="Zotero.MASMetaData.APIKey.setAPIKey(this.value);"/>
       </hbox>
     </groupbox>
     <separator class="thin"/>
