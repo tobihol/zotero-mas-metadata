@@ -5,7 +5,7 @@
     <em:description>A Zotero plugin that adds Microsoft Academic Search metadata.</em:description> 
     <em:id>tobias.holtdirk@gmail.com</em:id>
     <em:creator>Tobias Holtdirk</em:creator>
-    <em:version>0.1.1</em:version>
+    <em:version>0.1.2</em:version>
     <em:homepageURL>https://github.com/TobiHol/zotero-mas-metadata</em:homepageURL>
     <em:updateURL>https://raw.githubusercontent.com/TobiHol/zotero-mas-metadata/master/update.rdf</em:updateURL>
     <em:type>2</em:type>
