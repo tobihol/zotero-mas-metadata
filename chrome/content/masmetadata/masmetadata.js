@@ -3,7 +3,6 @@ Zotero.MASMetaData = new function () {
     const _extraPrefix = 'ECC';
     const _extraEntrySep = ' \n';
     const _noData = 'No MAS Data';
-    const _baseUrl = 'https://api.labs.cognitive.microsoft.com/academic/v1.0';
     const _extraRegex = new RegExp( // TODO understand this regex
         '^(?:(?:' + _extraPrefix + ': )?)'
         + '((?:(?:\\d{'
@@ -108,8 +107,6 @@ Zotero.MASMetaData = new function () {
         this.itemsToUpdate = null;
         this.currentItemIndex = 0;
         this.numberOfUpdatedItems = 0;
-        this.currentRequest = null;
-        this.currentRequestAborted = false;
     };
 
     this.updateSelectedItems = function (operation) {
@@ -154,12 +151,6 @@ Zotero.MASMetaData = new function () {
         this.progressWin.changeHeadline(headline, icon);
         this.progressWin.progress = new this.progressWin.ItemProgress();
         this.progressWin.show();
-        this.progressWin.getProgressWindow().addEventListener('mouseup', function () {
-            _this.currentRequestAborted = true;
-            if (_this.currentRequest) {
-                _this.currentRequest.abort();
-            };
-        }, false);
 
         this.updateNextItem(operation);
     };
@@ -199,19 +190,10 @@ Zotero.MASMetaData = new function () {
         this.updateNextItem(operation);
     };
 
-    function formatParams(params) {
-        return '?' + Object
-            .keys(params)
-            .map(function (key) {
-                return key + '=' + params[key]
-            })
-            .join('&');
-    };
-
     /** Make API Requests */
 
     this.interpretQuery = function (item, operation) {
-        let request_type = '/interpret';
+        let request_type = 'interpret';
         let title = item.getField('title');
         let year = item.getField('year');
         // let creators = item.getCreators();
@@ -225,7 +207,7 @@ Zotero.MASMetaData = new function () {
         //         + creator.lastName.toLowerCase()
         //     }
         // }
-        if (year) query += ' ' + year;
+        if (year) query = year + ' ' + query;
         let params = {
             // Request parameters
             'query': query,
@@ -235,68 +217,29 @@ Zotero.MASMetaData = new function () {
             // 'timeout': '{number}',
             'model': 'latest',
         };
-        let url = _baseUrl + request_type + formatParams(params);
-        Zotero.debug('[mas-metadata]: The url for MAS query: ' + url);
-        let req = new XMLHttpRequest();
-        req.open('GET', url, true);
-        let key = getAPIKey();
-        if(!key) { // TODO make this cleaner 
-            _this.resetState('error');
-            Zotero.alert(null, 'MAS MetaData', 'No API Key found. \nGo to `Tools -> MASMetaData Preferences... -> MAS API Key` to insert a key.');
-            return;
-        };
-        req.setRequestHeader('Ocp-Apim-Subscription-Key', key);
-        req.responseType = 'json';
-        // req.addEventListener('progress', updateProgress);
-        req.addEventListener('loadend', requestComplete);
-        req.addEventListener('load', requestSucceeded);
-        req.addEventListener('error', requestFailed);
-        req.addEventListener('abort', requestCanceled);
-        req.send();
-        this.currentRequest = req;
-        if (this.currentRequestAborted) {
+
+        req = new MasAPIQuery(request_type, params);
+        req.send()
+            .then(function (res) {
+                let intp = res.interpretations[0];
+                if (intp.logprob > getPref('logprob')) {
+                    let expr = intp.rules[0].output.value;
+                    _this.evaluateExpr(item, expr, operation);
+                } else {
+                    _this.updateCitation(item, -1); // TODO print logprob
+                    _this.updateNextItem(operation);
+                }
+            })
+            .catch(function (err) {
+                _this.resetState(err.action);
+            });
+        this.progressWin.getProgressWindow().addEventListener('mouseup', function () {
             req.abort();
-        };
-        function requestComplete(evt) {
-            if (_this.currentRequest === req) {
-                _this.currentRequest = null;
-            };
-        };
-        function requestSucceeded(evt) {
-            res = req.response;
-            switch (this.status) {
-                case 200:
-                    if (!res.aborted && res.interpretations.length > 0) {
-                        let intp = res.interpretations[0];
-                        if (intp.logprob > getPref('logprob')) {
-                            let expr = intp.rules[0].output.value;
-                            _this.evaluateExpr(item, expr, operation);
-                        } else {
-                            _this.updateCitation(item, -1); // TODO print logprob
-                            _this.updateNextItem(operation);
-                        }
-                    } else {
-                        _this.resetState('error');
-                        Zotero.alert(null, 'MAS MetaData', 'MAS api request was aborted.');
-                    };
-                    break;
-                default:
-                    _this.resetState('error');
-                    if (res.error) {
-                        let error = res.error;
-                        Zotero.alert(null, 'MAS MetaData', 'ERROR: ' + this.status + '\n'
-                            + 'Code: ' + error.code + '\n'
-                            + 'Message: ' + error.message);
-                    } else {
-                        Zotero.alert(null, 'MAS MetaData', JSON.stringify(res));
-                    }
-                    break;
-            };
-        };
+        }, false);
     };
 
     this.evaluateExpr = function (item, expr, operation) {
-        request_type = '/evaluate';
+        request_type = 'evaluate';
         let params = {
             // Request parameters
             'expr': expr,
@@ -306,58 +249,19 @@ Zotero.MASMetaData = new function () {
             // 'orderby': '{string}',
             'attributes': 'CC,ECC',
         };
-        let url = _baseUrl + request_type + formatParams(params);
-        Zotero.debug('[mas-metadata]: The url for MAS evaluate: ' + url);
-        let req = new XMLHttpRequest();
-        req.open('GET', url, true);
-        let key = getAPIKey();
-        if(!key) { // TODO make this cleaner 
-            _this.resetState('error');
-            Zotero.alert(null, 'MAS MetaData', 'No API Key found. \nGo to `Tools -> MASMetaData Preferences... -> MAS API Key` to insert a key.');
-            return;
-        };
-        req.setRequestHeader('Ocp-Apim-Subscription-Key', key);
-        req.responseType = 'json';
-        req.addEventListener('loadend', requestComplete);
-        req.addEventListener('load', requestSucceeded);
-        req.addEventListener('error', requestFailed);
-        req.addEventListener('abort', requestCanceled);
-        req.send();
-        this.currentRequest = req;
-        if (this.currentRequestAborted) {
+        req = new MasAPIQuery(request_type, params);
+        req.send()
+            .then(function (res) {
+                let ecc = res.entities[0].ECC;
+                _this.updateCitation(item, ecc);
+                _this.updateNextItem(operation);
+            })
+            .catch(function (err) {
+                _this.resetState(err.action);
+            });
+        this.progressWin.getProgressWindow().addEventListener('mouseup', function () {
             req.abort();
-        };
-        function requestComplete(evt) {
-            if (_this.currentRequest === req) {
-                _this.currentRequest = null;
-            };
-        };
-        function requestSucceeded(evt) {
-            res = req.response;
-            switch (this.status) {
-                case 200:
-                    if (!res.aborted && res.entities.length > 0) {
-                        let ecc = res.entities[0].ECC;
-                        _this.updateCitation(item, ecc);
-                        _this.updateNextItem(operation);
-                    } else {
-                        _this.resetState('error');
-                        Zotero.alert(null, 'MAS MetaData', 'MAS API request was aborted.');
-                    }
-                    break;
-                default:
-                    _this.resetState('error');
-                    if (res.error) {
-                        let error = res.error;
-                        Zotero.alert(null, 'MAS MetaData', 'ERROR: ' + this.status + '\n'
-                            + 'Code: ' + error.code + '\n'
-                            + 'Message: ' + error.message);
-                    } else {
-                        Zotero.alert(null, 'MAS MetaData', JSON.stringify(res));
-                    }
-                    break;
-            };
-        };
+        }, false);
     };
 
     /** Change Extra Field */
@@ -384,7 +288,7 @@ Zotero.MASMetaData = new function () {
         let newExtra = '';
         newExtra += this.buildCiteCountString(citeCount);
         this.numberOfUpdatedItems++; // TODO: check if this counter can be improved e.g. give more informaiton than currently 
-            
+
         // TODO make this cleaner related to regex
         if (/^\s\n/.test(matches[3]) || matches[3] === '') {
             // do nothing, since the separator is already correct or not needed at all
@@ -434,20 +338,5 @@ Zotero.MASMetaData = new function () {
 
     function clearPref(pref) {
         return Zotero.Prefs.clear('extensions.masmetadata.' + pref, true);
-    };
-
-    function getAPIKey() {
-        return Zotero.MASMetaData.APIKey.getAPIKey();
-    }
-
-    // Request Handlers
-    function requestFailed(evt) {
-        _this.resetState('error');
-        Zotero.alert(null, 'MAS MetaData', evt); //TODO: check if this is fine
-    };
-    
-    function requestCanceled(evt) {
-        _this.currentRequestAborted = false;
-        _this.resetState('abort');
     };
 };
