@@ -175,7 +175,7 @@ Zotero.MASMetaData = new function () {
     this.updateItem = function (item, operation) {
         switch (operation) {
             case 'update':
-                this.interpretQuery(item, operation);
+                this.fastEvaluateExpr(item, operation);
                 break;
             case 'remove':
                 this.removeMetaData(item, operation);
@@ -191,28 +191,84 @@ Zotero.MASMetaData = new function () {
     };
 
     /** Make API Requests */
+    this.fastEvaluateExpr = function (item, operation) {
+        request_type = 'evaluate';
+        let title = item.getField('title');
+        let year = item.getField('year');
+        if (!(title && year)) {
+            this.interpretQuery(item, operation);
+            return;
+        }
+        title = title.replace(/\W/g, ' ').replace(/\s+/g, ' ').toLowerCase();
+        let expr = "And(Y=" + year + ",Ti='" + title + "')";
+
+        let params = {
+            // Request parameters
+            'expr': expr,
+            'model': 'latest',
+            'count': '10',
+            'offset': '0',
+            // 'orderby': '{string}',
+            'attributes': 'CC,ECC',
+        };
+        req = new MasAPIQuery(request_type, params);
+        req.send()
+            .then(function (res) {
+                let entities = res.entities;
+                if (entities.length == 1) {
+                    let ecc = entities[0].ECC;
+                    // get entry with highest cite count
+                    // let highest_logprob = entities[0].logprob;
+                    // let entity;
+                    // for (entity of entities) {
+                    //     if (entity.logprob >= highest_logprob) {
+                    //         ecc = Math.max(ecc, entity.ECC);
+                    //     } else {
+                    //         break;
+                    //     };
+                    // };
+                    _this.updateCitation(item, ecc);
+                    _this.updateNextItem(operation);
+                } else {
+                    _this.interpretQuery(item, operation);
+                }
+            })
+            .catch(function (err) {
+                _this.resetState(err.action);
+            });
+        this.progressWin.getProgressWindow().addEventListener('mouseup', function () {
+            req.abort();
+        }, false);
+    };
 
     this.interpretQuery = function (item, operation) {
         let request_type = 'interpret';
         let title = item.getField('title');
         let year = item.getField('year');
-        // let creators = item.getCreators();
-        let query = title;
-        // adding creators seems to make interpreter worse at detecting if paper exists (prob is not as far apart between ex and not ex)
+        let creators = item.getCreators();
+        let delimiter = ', '
+        let query = '';
+
+        title = title.replace(/\W/g, ' ').replace(/\s+/g, ' ')
+        query += title
+        if (year) query += delimiter + year;
         // if (creators && creators.length > 0) {
-        //     for (const creator of creators) {
-        //         query += ' '
-        //         + creator.firstName.toLowerCase()
-        //         + ' '
-        //         + creator.lastName.toLowerCase()
-        //     }
+        //     creator = creators[0]
+        //     // only get initial of first first name
+        //     let firstName = creator.firstName.toLowerCase()
+        //     firstName = firstName.trim().charAt(0)
+        //     // remove all non word characters
+        //     let lastName = creator.lastName.toLowerCase()
+        //     lastName = lastName.replace(/\W/g, '')
+        //     query += firstName + ' ' + lastName + delimiter
         // }
-        if (year) query = year + ' ' + query;
-        let params = {
+        // replace non word character with spaces
+
+        let params = { // TODO: dont need this can be put in the class
             // Request parameters
             'query': query,
             'complete': '0',
-            'count': '1',
+            'count': '10',
             // 'offset': '{number}',
             // 'timeout': '{number}',
             'model': 'latest',
@@ -222,6 +278,7 @@ Zotero.MASMetaData = new function () {
         req.send()
             .then(function (res) {
                 let intp = res.interpretations[0];
+                Zotero.debug('[mas-metadata]: The logprob for MAS query: ' + intp.logprob);
                 if (intp.logprob > getPref('logprob')) {
                     let expr = intp.rules[0].output.value;
                     _this.evaluateExpr(item, expr, operation);
@@ -244,7 +301,7 @@ Zotero.MASMetaData = new function () {
             // Request parameters
             'expr': expr,
             'model': 'latest',
-            'count': '1',
+            'count': '10',
             'offset': '0',
             // 'orderby': '{string}',
             'attributes': 'CC,ECC',
@@ -252,7 +309,18 @@ Zotero.MASMetaData = new function () {
         req = new MasAPIQuery(request_type, params);
         req.send()
             .then(function (res) {
-                let ecc = res.entities[0].ECC;
+                let entities = res.entities;
+                // get entry with highest cite count
+                let ecc = entities[0].ECC;
+                let highest_logprob = entities[0].logprob;
+                let entity;
+                for (entity of entities) {
+                    if (entity.logprob >= highest_logprob) {
+                        ecc = Math.max(ecc, entity.ECC);
+                    } else {
+                        break;
+                    };
+                }
                 _this.updateCitation(item, ecc);
                 _this.updateNextItem(operation);
             })

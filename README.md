@@ -26,7 +26,7 @@ The plugin currently uses one interpret request and one evaluate request per ite
 
 ### Citation Count
 
-The plugin adds citation counts to the extra field of items in Zotero. The citation count used is the estimated citation count (`ECC`) from Microsoft , which is calculated using the Microsoft Academic Graph data to get a more accurate citation count for each publication (at least thats what Microsoft says https://academic.microsoft.com/faq?target=ranking1).
+The plugin adds citation counts to the extra field of items in Zotero. The citation count used is the estimated citation count (`ECC`) from Microsoft, which is calculated using the Microsoft Academic Graph data to get a more accurate citation count for each publication (at least thats what Microsoft says https://academic.microsoft.com/faq?target=ranking1).
 
 ### Logprob
 
