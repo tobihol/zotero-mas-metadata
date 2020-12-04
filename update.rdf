@@ -5,13 +5,13 @@
       <RDF:Seq>
         <RDF:li>
           <RDF:Description>
-            <em:version>0.1.3</em:version>
+            <em:version>0.1.4</em:version>
             <em:targetApplication>
               <RDF:Description>
                 <em:id>zotero@chnm.gmu.edu</em:id>
                 <em:minVersion>5.0</em:minVersion>
                 <em:maxVersion>5.0.*</em:maxVersion>
-                <em:updateLink>https://github.com/TobiHol/zotero-mas-metadata/releases/download/v0.1.3/zotero-mas-metadata-0.1.3-fx.xpi</em:updateLink>
+                <em:updateLink>https://github.com/TobiHol/zotero-mas-metadata/releases/download/v0.1.4/zotero-mas-metadata-0.1.4-fx.xpi</em:updateLink>
               </RDF:Description>
             </em:targetApplication>
             <em:targetApplication>
@@ -19,7 +19,7 @@
                 <em:id>juris-m@juris-m.github.io</em:id>
                 <em:minVersion>5.0</em:minVersion>
                 <em:maxVersion>5.0.*</em:maxVersion>
-                <em:updateLink>https://github.com/TobiHol/zotero-mas-metadata/releases/download/v0.1.3/zotero-mas-metadata-0.1.3-fx.xpi</em:updateLink>
+                <em:updateLink>https://github.com/TobiHol/zotero-mas-metadata/releases/download/v0.1.4/zotero-mas-metadata-0.1.4-fx.xpi</em:updateLink>
               </RDF:Description>
             </em:targetApplication>
           </RDF:Description>
