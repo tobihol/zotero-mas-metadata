@@ -2,7 +2,7 @@
 if (!Zotero.MASMetaData) {
 	let loader = Components.classes['@mozilla.org/moz/jssubscript-loader;1']
 					.getService(Components.interfaces.mozIJSSubScriptLoader);
-	let scripts = ['masmetadata', 'progressWindow', 'masAPIKey', 'masAPIQuery'];
+	let scripts = ['masmetadata', 'progressWindow', 'masAPIKey', 'masAPIQuery', 'utils'];
 	scripts.forEach(s => loader.loadSubScript('chrome://masmetadata/content/' + s + '.js'));
 };
 
