@@ -1,18 +1,9 @@
 Zotero.MASMetaData = new function () {
     const _citeCountStrLength = 7;
-    const _extraPrefix = 'ECC';
+    const _extraPrefix = 'ECC: ';
     const _extraEntrySep = ' \n';
-    const _noData = 'No MAS Data';
-    const _extraRegex = new RegExp( // TODO understand this regex
-        '^(?:(?:' + _extraPrefix + ': )?)'
-        + '((?:(?:\\d{'
-        + _citeCountStrLength +
-        '}|'
-        + _noData +
-        ')|(?:\\d{5}|No Citation Data))?)'
-        + '\\[?s?(\\d|)\\]?'
-        + '([^]*)$'
-    );
+    const _noData = 'No Data';
+    const _extraRegex = new RegExp('^(?!' + _extraPrefix + '(\\d{' + _citeCountStrLength + '}|' + _noData + ')).*$', 'gm');
     const _this = this;
 
     // Startup - initialize plugin
@@ -118,7 +109,7 @@ Zotero.MASMetaData = new function () {
     }
 
     this.updateItems = function (items, operation) {
-        //TODO is this enough filter?
+        // TODO: is this enough filter?
         // items = items.filter(item => item.itemTypeID != Zotero.ItemTypes.getID('attachment'));
         // items = items.filter(item => item.isTopLevelItem());
         items = items.filter(item => item.getField('title'));
@@ -264,7 +255,7 @@ Zotero.MASMetaData = new function () {
         // }
         // replace non word character with spaces
 
-        let params = { // TODO: dont need this can be put in the class
+        let params = {
             // Request parameters
             'query': query,
             'complete': '0',
@@ -283,7 +274,7 @@ Zotero.MASMetaData = new function () {
                     let expr = intp.rules[0].output.value;
                     _this.evaluateExpr(item, expr, operation);
                 } else {
-                    _this.updateCitation(item, -1); // TODO print logprob
+                    _this.updateCitation(item, intp.logprob);
                     _this.updateNextItem(operation);
                 }
             })
@@ -334,17 +325,56 @@ Zotero.MASMetaData = new function () {
 
     /** Change Extra Field */
 
+    // this.removeCitation = function (item) {
+    //     let curExtra = item.getField('extra');
+    //     let matches = curExtra.match(_extraRegex);
+    //     let newExtra = matches[3];
+
+    //     if (curExtra != newExtra) {
+    //         this.numberOfUpdatedItems++;
+    //     }
+
+    //     item.setField('extra', newExtra);
+
+    //     try { item.saveTx(); } catch (e) {
+    //         Zotero.logError(e);
+    //     }
+    // };
+
+    // this.updateCitation = function (item, citeCount) {
+    //     let curExtra = item.getField('extra');
+    //     let matches = curExtra.match(_extraRegex);
+    //     let newExtra = '';
+    //     newExtra += this.buildCiteCountString(citeCount);
+    //     this.numberOfUpdatedItems++;
+
+    //     if (/^\s\n/.test(matches[3]) || matches[3] === '') {
+    //         // do nothing, since the separator is already correct or not needed at all
+    //     } else if (/^\n/.test(matches[3])) {
+    //         newExtra += ' ';
+    //     } else {
+    //         newExtra += _extraEntrySep;
+    //     }
+    //     newExtra += matches[3];
+
+    //     item.setField('extra', newExtra);
+
+    //     try { item.saveTx(); } catch (e) {
+    //         Zotero.logError(e);
+    //     }
+    // };
+
     this.removeCitation = function (item) {
         let curExtra = item.getField('extra');
-        let matches = curExtra.match(_extraRegex);
-        let newExtra = matches[3];
-
-        if (curExtra != newExtra) {
+        let newExtra = ''
+        let matches = curExtra.match(_extraRegex)
+        if (matches != null) {
+            newExtra = curExtra.match(_extraRegex).join('\n')
+        }
+        if (newExtra != curExtra) {
             this.numberOfUpdatedItems++;
         }
-
         item.setField('extra', newExtra);
-
         try { item.saveTx(); } catch (e) {
             Zotero.logError(e);
         }
@@ -352,26 +382,23 @@ Zotero.MASMetaData = new function () {
 
     this.updateCitation = function (item, citeCount) {
         let curExtra = item.getField('extra');
-        let matches = curExtra.match(_extraRegex);
-        let newExtra = '';
-        newExtra += this.buildCiteCountString(citeCount);
-        this.numberOfUpdatedItems++; // TODO: check if this counter can be improved e.g. give more informaiton than currently 
-
-        // TODO make this cleaner related to regex
-        if (/^\s\n/.test(matches[3]) || matches[3] === '') {
-            // do nothing, since the separator is already correct or not needed at all
-        } else if (/^\n/.test(matches[3])) {
-            newExtra += ' ';
-        } else {
-            newExtra += _extraEntrySep;
+        let newExtra = this.buildCiteCountString(citeCount);
+        let matches = curExtra.match(_extraRegex)
+        if (matches != null) {
+            newExtra += curExtra.match(_extraRegex).join('\n')
         }
-        newExtra += matches[3];
-
+        this.numberOfUpdatedItems++;
         item.setField('extra', newExtra);
-
         try { item.saveTx(); } catch (e) {
             Zotero.logError(e);
         }
+    }
+
+    this.buildCiteCountString = function (citeCount) {
+        if (citeCount < 0)
+            return _extraPrefix + _noData + ' (logprob: ' + citeCount.toString() + ')' + _extraEntrySep;
+        else
+            return _extraPrefix + this.padLeftWithZeroes(citeCount.toString()) + _extraEntrySep;
     };
 
     this.padLeftWithZeroes = function (numStr) {
@@ -380,17 +407,6 @@ Zotero.MASMetaData = new function () {
         for (let i = 0; i < cnt; i++) { output += '0'; };
         output += numStr;
         return output;
-    };
-
-    this.buildCiteCountString = function (citeCount) {
-        if (citeCount < 0)
-            return _extraPrefix + ': ' + _noData;
-        else
-            return _extraPrefix + ': ' + this.padLeftWithZeroes(citeCount.toString());
-    };
-
-    this.buildStalenessString = function (stalenessCount) {
-        return '[s' + stalenessCount + ']';
     };
 
     /** Functions */

@@ -38,7 +38,7 @@ class MasAPIQuery {
                 reject({
                     action: 'error'
                 });
-                Zotero.alert(null, 'MAS MetaData', this); //TODO: check if this is fine
+                Zotero.alert(null, 'MAS MetaData', this);
             };
             _this.req.onabort = function () {
                 reject({
