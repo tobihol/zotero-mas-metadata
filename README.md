@@ -4,7 +4,7 @@ MAS MetaData is a [Zotero](https://github.com/zotero/zotero.git) plugin that use
 
 You need to generate an api key for the Microsoft Academic Search (MAS) API to use this plugin.
 
-This plugin is based in part on [Zotero Google Scholar Citations](https://github.com/MaxKuehn/zotero-scholar-citations.git) and [Zotero DOI Manager](https://github.com/bwiernik/zotero-shortdoi).
+MAS MetaData is based in part on [Zotero Google Scholar Citations](https://github.com/MaxKuehn/zotero-scholar-citations.git) and [Zotero DOI Manager](https://github.com/bwiernik/zotero-shortdoi).
 
 ## Installation
 
@@ -19,7 +19,7 @@ This plugin is based in part on [Zotero Google Scholar Citations](https://github
 
 The free api has a rate limit of 10,000 transactions per month, 3 per second for interpret, 1 per second for evaluate, 6 per minute for calcHistogram.
 
-The plugin currently uses one interpret request and one evaluate request per item. Thus you can update metadata for 5,000 items per month (per subscription).
+The plugin currently uses at most one interpret request and two evaluate request per item. Thus you can update metadata for 3,333 items per month (per subscription) in the worst case. However the average should be around 9,000 items per month as most items should use only one evaluate request and no interpret requests.
 
 ### Citation Count
 
@@ -29,7 +29,7 @@ The plugin adds citation counts to the extra field of items in Zotero. The citat
 
 Successfully query responses from the MAS API come with a probability (`prob`) value between 0 and 1. This value determines how likely the response is to be correct (higher - more likely to be correct).
 
-In the setting `Tools -> MASMetaData Preferences... -> Advanced Settings` you can edit a cutoff probability. Responses with lower probability than the cutoff are excluded. The setting uses the logarithm of the probability (`logprob`) for ease of use.
+In the setting `Tools -> MASMetaData Preferences... -> Advanced Settings` you can edit a cutoff probability. Responses with lower probability than the cutoff are excluded. The setting uses a logarithm of the probability (`logprob`) for ease of use.
 
 ## Further Information
 
