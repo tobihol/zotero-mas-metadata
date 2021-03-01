@@ -1,9 +1,4 @@
 Zotero.MASMetaData = new function () {
-    const _citeCountStrLength = 7;
-    const _extraPrefix = 'ECC: ';
-    const _extraEntrySep = ' \n';
-    const _noData = 'No Data';
-    const _extraRegex = new RegExp('^(?!' + _extraPrefix + '(\\d{' + _citeCountStrLength + '}|' + _noData + ')).*$', 'gm');
     const _this = this;
 
     // Startup - initialize plugin
@@ -31,7 +26,7 @@ Zotero.MASMetaData = new function () {
     };
 
     /**
-     * Open masmetadata preference window
+     * masmetadata preference window
      */
     this.openPreferenceWindow = function (paneID, action) {
         let io = { pane: paneID, action: action };
@@ -94,10 +89,10 @@ Zotero.MASMetaData = new function () {
             default:
                 break;
         };
-        this.numberOfItemsToUpdate = 0;
         this.itemsToUpdate = null;
         this.currentItemIndex = 0;
         this.numberOfUpdatedItems = 0;
+        this.numberOfItemsToUpdate = 0;
     };
 
     this.updateSelectedItems = function (operation) {
@@ -325,51 +320,13 @@ Zotero.MASMetaData = new function () {
 
     /** Change Extra Field */
 
-    // this.removeCitation = function (item) {
-    //     let curExtra = item.getField('extra');
-    //     let matches = curExtra.match(_extraRegex);
-    //     let newExtra = matches[3];
-
-    //     if (curExtra != newExtra) {
-    //         this.numberOfUpdatedItems++;
-    //     }
-
-    //     item.setField('extra', newExtra);
-
-    //     try { item.saveTx(); } catch (e) {
-    //         Zotero.logError(e);
-    //     }
-    // };
-
-    // this.updateCitation = function (item, citeCount) {
-    //     let curExtra = item.getField('extra');
-    //     let matches = curExtra.match(_extraRegex);
-    //     let newExtra = '';
-    //     newExtra += this.buildCiteCountString(citeCount);
-    //     this.numberOfUpdatedItems++;
-
-    //     if (/^\s\n/.test(matches[3]) || matches[3] === '') {
-    //         // do nothing, since the separator is already correct or not needed at all
-    //     } else if (/^\n/.test(matches[3])) {
-    //         newExtra += ' ';
-    //     } else {
-    //         newExtra += _extraEntrySep;
-    //     }
-    //     newExtra += matches[3];
-
-    //     item.setField('extra', newExtra);
-
-    //     try { item.saveTx(); } catch (e) {
-    //         Zotero.logError(e);
-    //     }
-    // };
-
     this.removeCitation = function (item) {
         let curExtra = item.getField('extra');
         let newExtra = ''
-        let matches = curExtra.match(_extraRegex)
+        let extraRegex = this.getExtraRegex();
+        let matches = curExtra.match(extraRegex)
         if (matches != null) {
-            newExtra = curExtra.match(_extraRegex).join('\n')
+            newExtra = matches.join('\n')
         }
         if (newExtra != curExtra) {
             this.numberOfUpdatedItems++;
@@ -383,9 +340,10 @@ Zotero.MASMetaData = new function () {
     this.updateCitation = function (item, citeCount) {
         let curExtra = item.getField('extra');
         let newExtra = this.buildCiteCountString(citeCount);
-        let matches = curExtra.match(_extraRegex)
+        let extraRegex = this.getExtraRegex();
+        let matches = curExtra.match(extraRegex)
         if (matches != null) {
-            newExtra += curExtra.match(_extraRegex).join('\n')
+            newExtra += matches.join('\n')
         }
         this.numberOfUpdatedItems++;
         item.setField('extra', newExtra);
@@ -395,18 +353,26 @@ Zotero.MASMetaData = new function () {
     }
 
     this.buildCiteCountString = function (citeCount) {
-        if (citeCount < 0)
-            return _extraPrefix + _noData + ' (logprob: ' + citeCount.toString() + ')' + _extraEntrySep;
-        else
-            return _extraPrefix + this.padLeftWithZeroes(citeCount.toString()) + _extraEntrySep;
+        let cite_count_format = getPref('cite_count_format');
+        let cite_count_length = getPref('cite_count_length');
+        let cite_count_string = '';
+        if (citeCount < 0) {
+            cite_count_string = cite_count_format.replace('[cite_count]', `No Data (logprob: ${citeCount.toString()})`);
+        } else {
+            let padded_cite_count = citeCount.toString().padStart(cite_count_length, '0');
+            cite_count_string = cite_count_format.replace('[cite_count]', `${padded_cite_count}`);
+        }
+        return cite_count_string + '\n';
     };
 
-    this.padLeftWithZeroes = function (numStr) {
-        let output = '';
-        let cnt = _citeCountStrLength - numStr.length;
-        for (let i = 0; i < cnt; i++) { output += '0'; };
-        output += numStr;
-        return output;
+    this.getExtraRegex = function () {
+        // let cite_count_format = getPref('cite_count_format');
+        // let cite_count_length = getPref('cite_count_length');
+        // let infix = cite_count_format.replace('[cite_count]',`(\\d{${cite_count_length},}|No Data .*)` );
+        // extraRegex = new RegExp(`^(?!${infix}).*$`, 'gm');
+
+        extraRegex = new RegExp('^(?!(ECC: .*|.* ECC) ?$).*$', 'gm')
+        return extraRegex;
     };
 
     /** Functions */

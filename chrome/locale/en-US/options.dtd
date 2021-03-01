@@ -5,6 +5,9 @@
 <!ENTITY autoretrieve-label "Automatically retrieve metadata for new items">
 
 <!ENTITY advanced-settings "Advanced Settings">
+<!ENTITY cc-format-desc "Change the format of the citation count displayed in the extra field.">
+<!ENTITY cc-format-label "Format:">
+<!ENTITY cc-length-label "Max. Leading Zeros:">
 <!ENTITY logprob-desc "Change the cutoff probability. API Responses with a lower probability value than the cutoff are excluded.">
 <!ENTITY logprob-label "logprob:">
 <!ENTITY default "Restore default">

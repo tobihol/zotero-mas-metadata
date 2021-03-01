@@ -32,6 +32,19 @@
       <menuitem id="menu_Tools-masmetadata-preferences" label="&masmetadata-preferences-label;" oncommand="Zotero.MASMetaData.openPreferenceWindow();"/>
     </menupopup>
 
+    <!-- <tabs id="zotero-editpane-tabs">
+        <tab id="zotero-editpane-mas-metadata-tab" label="MAS MetaData"/>
+    </tabs>
+    <treecols id="zotero-items-columns-header">
+        <treecol
+            id="zotero-items-column-ecc"
+            label="ECC"
+            flex="1"
+            insertafter="zotero-items-column-title"
+            zotero-persist="width ordinal hidden sortActive sortDirection"
+        />
+    </treecols> -->
+
     <script src="chrome://zotero/content/include.js"/>
     <script src="chrome://masmetadata/content/include.js"/>
 

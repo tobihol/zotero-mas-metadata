@@ -13,6 +13,8 @@
     <preferences>
       <preference id="pref-masmetadata-autoretrieve" name="extensions.masmetadata.autoretrieve" type="bool"/>
       <preference id="pref-masmetadata-logprob" name="extensions.masmetadata.logprob" type="int"/>
+      <preference id="pref-masmetadata-cc-format" name="extensions.masmetadata.cite_count_format" type="string"/>
+      <preference id="pref-masmetadata-cc-length" name="extensions.masmetadata.cite_count_length" type="int"/>
     </preferences>
     <groupbox>
       <caption label="&general-settings;"/>
@@ -22,9 +24,24 @@
 
     <groupbox>
       <caption label="&advanced-settings;"/>
-      <description style="width: 420px">&logprob-desc;</description>
       <separator class="thin"/>
-      <hbox  style="margin: 0"  align="center">
+      <description style="width: 420px">&cc-format-desc;</description>
+      <hbox style="margin: 0"  align="center">
+        <label control="id-masmetadata-cc-format-label" value="&cc-format-label;"/>
+        <!-- <textbox id="id-masmetadata-cc-format-textbox" preference="pref-masmetadata-cc-format" flex="1" type="string"/> -->
+        <menulist preference="pref-masmetadata-cc-format">
+          <menupopup>
+            <menuitem label="ECC: [cite_count]" value="ECC: [cite_count] "/>
+            <menuitem label="[cite_count] ECC" value="[cite_count] ECC "/>
+          </menupopup>
+        </menulist>
+        <label control="id-masmetadata-cc-format-label" value="&cc-length-label;"/>
+        <textbox id="id-masmetadata-cc-length-textbox" preference="pref-masmetadata-cc-length" flex="1" type="int"/>
+        <button id="id-masmetadata-cc-format-reset-button" label="&default;" oncommand="Zotero.MASMetaData.setPrefToDefault('cite_count_format'); Zotero.MASMetaData.setPrefToDefault('cite_count_length');"/>      
+      </hbox>
+      <separator/>
+      <description style="width: 420px">&logprob-desc;</description>
+      <hbox style="margin: 0"  align="center">
         <label control="id-masmetadata-logprob-label" value="&logprob-label;"/>
         <textbox id="id-masmetadata-logprob-textbox" preference="pref-masmetadata-logprob" flex="1" type="int"/>
         <button id="id-masmetadata-logprob-button" label="&default;" oncommand="Zotero.MASMetaData.setPrefToDefault('logprob');"/>      
