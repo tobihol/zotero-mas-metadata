@@ -1,4 +1,9 @@
 language: node_js
-script: make
-after_success:
-  - mv *.xpi zotero-mas-metadata-build-$TRAVIS_BUILD_NUMBER.xpi
+node_js:
+  - "16"
+cache: npm
+install:
+  - npm install
+script:
+  - npm run build
+  - npm run release

@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://zotero-platform/content/preferences.css"?>
+
+<!DOCTYPE window SYSTEM "chrome://zotero-mas-metadata/locale/options.dtd">
+
+<prefwindow id="mas-metadata-pref" title="&mas-metadata-preferences;" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+  onload="document.getElementById('id-mas-metadata-mas-api-key-textbox').value = Zotero.MASMetaData.APIKey.getAPIKey();">
+
+  <prefpane label="&mas-metadata-preferences;" id="mas-metadata-prefpane">
+    <preferences>
+      <preference id="pref-mas-metadata-autoretrieve" name="extensions.mas-metadata.autoretrieve" type="bool"/>
+      <preference id="pref-mas-metadata-logprob" name="extensions.mas-metadata.logprob" type="int"/>
+    </preferences>
+    <groupbox>
+      <caption label="&general-settings;"/>
+      <checkbox id="id-mas-metadata-autoretrieve" label="&autoretrieve-label;" preference="pref-mas-metadata-autoretrieve"/>
+    </groupbox>
+    <separator class="thin"/>
+
+    <groupbox>
+      <caption label="&advanced-settings;"/>
+      <separator/>
+      <description style="width: 420px">&logprob-desc;</description>
+      <hbox style="margin: 0"  align="center">
+        <label control="id-mas-metadata-logprob-label" value="&logprob-label;"/>
+        <textbox id="id-mas-metadata-logprob-textbox" preference="pref-mas-metadata-logprob" flex="1" type="int"/>
+        <button id="id-mas-metadata-logprob-button" label="&default;" oncommand="Zotero.MASMetaData.setPrefToDefault('logprob');"/>      
+      </hbox>
+    </groupbox>
+    <separator class="thin"/>
+    
+    <groupbox>
+      <caption label="&mas-api-key-caption;"/>
+      <hbox style="margin: 0">
+        <label style="margin-right:0px" value="&mas-api-key-generate;"/>
+        <label style="margin-left:0px; margin-right:0px" class="text-link" onclick="Zotero.MASMetaData.Utils.loadURI('https://msr-apis.portal.azure-api.net/products/project-academic-knowledge');" value="&mas-api-key-site;"/>
+        <label style="margin-left:0px; margin-right:0px" value="."/>
+      </hbox>
+      <separator class="thin"/>
+      <hbox  style="margin: 0"  align="center">
+        <label control="id-mas-metadata-mas-api-key-label" value="&mas-api-key-label;"/>
+        <textbox id="id-mas-metadata-mas-api-key-textbox" flex="1" type="password"
+          clickSelectsAll = "true"
+          onchange="Zotero.MASMetaData.APIKey.setAPIKey(this.value);"/>
+      </hbox>
+    </groupbox>
+    <separator class="thin"/>
+
+    <hbox style="margin: 0">
+      <label style="margin-right:0px" value="&for-more-information;"/>
+      <label style="margin-left:0px; margin-right:0px" class="text-link" onclick="Zotero.MASMetaData.Utils.loadURI('https://github.com/tobihol/zotero-mas-metadata');" value="&mas-metadata-github-page;"/>
+      <label style="margin-left:0px; margin-right:0px" value="."/>
+    </hbox>
+
+    <separator/>
+
+  </prefpane>
+
+  <!-- Include the main extension logic  -->
+  <script src="options.js"/>
+  <script src="chrome://zotero/content/include.js"/>
+  <script src="chrome://zotero-mas-metadata/content/include.js"/>
+</prefwindow>

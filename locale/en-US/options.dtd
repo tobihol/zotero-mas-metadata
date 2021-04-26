@@ -1,5 +1,5 @@
-<!ENTITY masmetadata-name "MAS MetaData">
-<!ENTITY masmetadata-preferences "MAS MetaData Preferences">
+<!ENTITY mas-metadata-name "MASMetaData">
+<!ENTITY mas-metadata-preferences "MASMetaData Preferences">
 
 <!ENTITY general-settings "General Settings">
 <!ENTITY autoretrieve-label "Automatically retrieve metadata for new items">
@@ -18,4 +18,4 @@
 <!ENTITY mas-api-key-label "Key: ">
 
 <!ENTITY for-more-information "For more information, see the ">
-<!ENTITY mas-metadata-github-page "MAS MetaData github page">
+<!ENTITY mas-metadata-github-page "MASMetaData github page">

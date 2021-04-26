@@ -1,6 +1,5 @@
-content	masmetadata					chrome/content/masmetadata/
-skin	masmetadata	default			chrome/skin/default/masmetadata/
+content	zotero-mas-metadata				content/
+locale	zotero-mas-metadata	en-US		locale/en-US/
+skin	zotero-mas-metadata	default		skin/
 
-overlay	chrome://zotero/content/zoteroPane.xul chrome://masmetadata/content/overlay.xul
-
-locale masmetadata en-US chrome/locale/en-US/
+overlay	chrome://zotero/content/zoteroPane.xul	chrome://zotero-mas-metadata/content/overlay.xul

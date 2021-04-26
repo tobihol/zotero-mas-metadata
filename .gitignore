@@ -1,5 +1,16 @@
-/Makefile.in
 .DS_Store
 *.xpi
 .vscode
 .debug
+wiki
+gen
+build
+*~
+*.swp
+*.debug
+*.cache
+*.status
+*.js.map
+*.tmp
+node_modules
+.env

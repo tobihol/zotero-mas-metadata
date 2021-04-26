@@ -1,0 +1,45 @@
+{
+  "name": "zotero-mas-metadata",
+  "version": "1.0.0",
+  "description": "Adds metadata from Microsoft Academic to Zotero",
+  "scripts": {
+    "lint": "tslint -t stylish --project .",
+    "prebuild": "npm run lint",
+    "build": "webpack",
+    "postbuild": "zotero-plugin-zipup build zotero-mas-metadata",
+    "release": "zotero-plugin-release",
+    "postversion": "git push --follow-tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tobihol/zotero-mas-metadata.git"
+  },
+  "author": {
+    "name": "Tobias Holtdirk",
+    "email": "tobias.holtdirk@gmail.com"
+  },
+  "bugs": {
+    "url": "https://github.com/tobihol/zotero-mas-metadata/issues"
+  },
+  "homepage": "https://github.com/tobihol/zotero-mas-metadata",
+  "dependencies": {
+    "@types/mocha": "^7.0.2",
+    "circular-dependency-plugin": "^5.2.0",
+    "mocha": "^7.2.0",
+    "mock-require": "^3.0.3",
+    "post-compile-webpack-plugin": "^0.1.2",
+    "rimraf": "^3.0.2",
+    "ts-loader": "^7.0.5",
+    "ts-node": "^8.10.2",
+    "tslint": "^6.1.2",
+    "typescript": "^3.9.3",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
+    "zotero-plugin": "1.0.22"
+  },
+  "xpi": {
+    "name": "MASMetaData for Zotero",
+    "updateLink": "https://github.com/tobihol/zotero-mas-metadata/releases/download/v{version}/zotero-mas-metadata-{version}.xpi",
+    "releaseURL": "https://github.com/tobihol/zotero-mas-metadata/releases/download/release/"
+  }
+}

@@ -1,4 +1,4 @@
-class MasAPIQuery {
+export class MasAPIQuery {
     constructor(request_type, params) {
         this._baseUrl = 'https://api.labs.cognitive.microsoft.com/academic/v1.0/';
         this.req = new XMLHttpRequest();
@@ -26,11 +26,11 @@ class MasAPIQuery {
                     });
                     if (res.error) {
                         let error = res.error;
-                        Zotero.alert(null, 'MAS MetaData', 'ERROR: ' + this.status + '\n'
+                        Zotero.alert(null, 'MASMetaData', 'ERROR: ' + this.status + '\n'
                             + 'Code: ' + error.code + '\n'
                             + 'Message: ' + error.message);
                     } else {
-                        Zotero.alert(null, 'MAS MetaData', JSON.stringify(res));
+                        Zotero.alert(null, 'MASMetaData', JSON.stringify(res));
                     }
                 }
             };
@@ -38,7 +38,7 @@ class MasAPIQuery {
                 reject({
                     action: 'error'
                 });
-                Zotero.alert(null, 'MAS MetaData', this);
+                Zotero.alert(null, 'MASMetaData', this);
             };
             _this.req.onabort = function () {
                 reject({
