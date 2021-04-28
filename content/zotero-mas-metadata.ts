@@ -15,6 +15,7 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
   private attributesForRequests: string = ''
   private observer: number = null
   private progressWin: any = null
+  private bundle: any
 
   constructor() {
     window.addEventListener('load', event => {
@@ -42,14 +43,17 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
     this.updateItems(items, operation)
   }
 
-  protected async notify(event, type, ids, extraData) {
-    if (!(type === 'item' && event === 'add' && getPref('autoretrieve'))) return
-    this.updateItems(Zotero.Items.get(ids), 'update')
+  public getString(name: string, params: object = {}) {
+    const str = this.bundle.GetStringFromName(name)
+    return str.replace(/{{(.*?)}}/g, (match, param) => `${(params[param] || '')}`)
   }
 
   private async load() {
     if (this.initialized) return
     this.initialized = true
+    this.bundle = Components.classes['@mozilla.org/intl/stringbundle;1']
+      .getService(Components.interfaces.nsIStringBundleService)
+      .createBundle('chrome://zotero-mas-metadata/locale/zotero-mas-metadata.properties')
     this.observer = Zotero.Notifier.registerObserver(this, ['item'], 'MASMetaData')
     Zotero.initializationPromise.then(() => {
       this.attributesToDisplay = attributes.display

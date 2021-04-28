@@ -45,10 +45,10 @@ export class MASProgressWindow{
     let headline = 'Default headline'
     switch (this.operation) {
         case 'update':
-            headline = 'Getting citations counts'
+            headline = Zotero.MASMetaData.getString('MASProgressWindow.headline.update')
             break
         case 'remove':
-            headline = 'Removing citation counts'
+            headline = Zotero.MASMetaData.getString('MASProgressWindow.headline.remove')
             break
         default:
             break
@@ -57,7 +57,24 @@ export class MASProgressWindow{
   }
 
   private updateText() {
-    this.progressWin.progress.setText(`${this.capitalizeFirstLetter(this.operation)} Item ${this.nDone} of ${this.nAll}`)
+    let text = 'Default text'
+    switch (this.operation) {
+      case 'update':
+        text = Zotero.MASMetaData.getString('MASProgressWindow.text.update', {
+          nDone: this.nDone,
+          nAll: this.nAll,
+        })
+        break
+      case 'remove':
+        text = Zotero.MASMetaData.getString('MASProgressWindow.text.remove', {
+          nDone: this.nDone,
+          nAll: this.nAll,
+        })
+        break
+      default:
+        break
+    }
+    this.progressWin.progress.setText(text)
   }
 
   private endWindow(outcome: string) {
@@ -66,24 +83,33 @@ export class MASProgressWindow{
     let text = 'Default text'
     switch (outcome) {
       case 'error':
-        headline = 'Error'
+        headline = Zotero.MASMetaData.getString('MASProgressWindow.end.headline.error')
         icon = 'chrome://zotero/skin/cross.png'
-        text = 'Something went wrong.'
+        text = Zotero.MASMetaData.getString('MASProgressWindow.end.text.error')
         break
       case 'update':
-        headline = 'Finished'
+        headline = Zotero.MASMetaData.getString('MASProgressWindow.end.headline.update')
         icon = 'chrome://zotero/skin/tick.png'
-        text = `${this.nDone - this.nFail} of ${this.nAll} citation count(s) updated.`
+        text = Zotero.MASMetaData.getString('MASProgressWindow.end.text.update', {
+          nSuccess: this.nDone - this.nFail,
+          nAll: this.nAll,
+        })
         break
       case 'remove':
-        headline = 'Finished'
+        headline = Zotero.MASMetaData.getString('MASProgressWindow.end.headline.remove')
         icon = 'chrome://zotero/skin/tick.png'
-        text = `${this.nDone - this.nFail} citation count(s) removed.`
+        text = Zotero.MASMetaData.getString('MASProgressWindow.end.text.remove', {
+          nSuccess: this.nDone - this.nFail,
+          nAll: this.nAll,
+        })
         break
       case 'abort':
-        headline = 'Aborted'
+        headline = Zotero.MASMetaData.getString('MASProgressWindow.end.headline.abort')
         icon = 'chrome://zotero/skin/cross.png'
-        text = `${this.nDone - this.nFail} of ${this.nAll} citation count(s) updated.`
+        text = Zotero.MASMetaData.getString('MASProgressWindow.end.text.abort', {
+          nSuccess: this.nDone - this.nFail,
+          nAll: this.nAll,
+        })
         break
       default:
         break
