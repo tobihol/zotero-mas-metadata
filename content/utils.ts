@@ -34,14 +34,13 @@ export function getMASMetaData(item) {
   const masAttchs = getMASMetaDataItems(item)
   if (masAttchs.length === 0) return {} // TODO: make these return more expressive
   const masFile = masAttchs[0].getFilePath()
-  const masString = Zotero.File.getContents(masFile)
   try {
+    const masString = Zotero.File.getContents(masFile)
     const masData = JSON.parse(masString)
     return masData
-  } catch (error) {
-    Zotero.logError(error)
+  } catch {
+    return {} // TODO: make this better maybe async
   }
-  return {}
 }
 
 export async function setMASMetaData(item, masData) {

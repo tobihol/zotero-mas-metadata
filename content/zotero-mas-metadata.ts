@@ -3,16 +3,18 @@ declare const ZoteroItemPane: any
 declare const Components: any
 declare const window: any
 
-import { MasAPIQuery } from './masAPIQuery'
 import { getMASMetaData, setMASMetaData, removeMASMetaData, getPref, clearPref } from './utils'
 import { patch as $patch$ } from './monkey-patch'
 import { attributes } from './attributes'
+import { MASProgressWindow } from './mas-progress-window'
+import { requestChain } from './mas-api-request'
 
 const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:variable-name
   private initialized: boolean = false
   private attributesToDisplay: object = {}
   private attributesForRequests: string = ''
   private observer: number = null
+  private progressWin: any = null
 
   constructor() {
     window.addEventListener('load', event => {
@@ -210,128 +212,32 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
   private updateItems(items, operation) {
     items = items.filter(item => item.isTopLevelItem())
     items = items.filter(item => item.getField('title'))
+    if (items.length === 0 || (this.progressWin && !this.progressWin.isFinished())) return
     switch (operation) {
       case 'update':
+        this.progressWin = new MASProgressWindow('update', items.length)
         items.forEach(item => {
-          this.fastEvaluateExpr(item)
+          requestChain(item, this.attributesForRequests)
+          .then( data => {
+            setMASMetaData(item, data)
+            this.progressWin.next()
+          })
+          .catch( error => {
+            this.progressWin.next(true)
+            Zotero.alert(null, 'MAS MetaData', JSON.stringify(error))
+          })
         })
         break
       case 'remove':
+        this.progressWin = new MASProgressWindow('remove', items.length)
         items.forEach(item => {
+          this.progressWin.next()
           removeMASMetaData(item)
         })
         break
       default:
         break
     }
-  }
-
-  private fastEvaluateExpr(item) {
-    const request_type = 'evaluate'
-    let title = item.getField('title')
-    const year = item.getField('year')
-    if (!(title && year)) {
-      this.interpretQuery(item)
-      return
-    }
-    title = title.replace(/\W/g, ' ').replace(/\s+/g, ' ').toLowerCase()
-    const expr = `And(Y=${year},Ti='${title}')`
-
-    const params = {
-      // Request parameters
-      expr,
-      model: 'latest',
-      count: '10',
-      offset: '0',
-      // 'orderby': '{string}',
-      attributes: this.attributesForRequests,
-    }
-    const req = new MasAPIQuery(request_type, params)
-    req.send()
-      .then(res => {
-        const entities = res.entities
-        if (entities.length === 1) {
-          this.updateMASFile(item, entities[0])
-        } else {
-          this.interpretQuery(item)
-        }
-      })
-      .catch(err => {
-        Zotero.alert(null, 'MASMetaData', err)
-      })
-  }
-
-  private interpretQuery(item) {
-    const request_type = 'interpret'
-    let title = item.getField('title')
-    const year = item.getField('year')
-    const creators = item.getCreators()
-    const delimiter = ', '
-    let query = ''
-
-    title = title.replace(/\W/g, ' ').replace(/\s+/g, ' ')
-    query += title
-    if (year) query += delimiter + year
-
-    const params = {
-      // Request parameters
-      query,
-      complete: '0',
-      count: '10',
-      // 'offset': '{number}',
-      // 'timeout': '{number}',
-      model: 'latest',
-    }
-
-    const req = new MasAPIQuery(request_type, params)
-    req.send()
-      .then(res => {
-        const intp = res.interpretations[0]
-        Zotero.debug('[mas-metadata]: The logprob for MAS query: ' + intp.logprob)
-        if (intp.logprob > getPref('logprob')) {
-          const expr = intp.rules[0].output.value
-          this.evaluateExpr(item, expr)
-        } else {
-          this.updateMASFile(item, intp)
-        }
-      })
-      .catch(err => {
-        Zotero.alert(null, 'MASMetaData', err)
-      })
-  }
-
-  private evaluateExpr(item, expr) {
-    const request_type = 'evaluate'
-    const params = {
-      // Request parameters
-      expr,
-      model: 'latest',
-      count: '10',
-      offset: '0',
-      // 'orderby': '{string}',
-      attributes: this.attributesForRequests,
-    }
-    const req = new MasAPIQuery(request_type, params)
-    req.send()
-      .then(res => {
-        const entities = res.entities
-        // get entry with highest cite count
-        const highest_logprob = entities[0].logprob
-        let bestEntity = entities[0]
-        entities.forEach(entity => {
-          if (entity.logprob >= highest_logprob && entity.ECC > bestEntity.ECC) {
-            bestEntity = entity
-          }
-        })
-        this.updateMASFile(item, bestEntity)
-      })
-      .catch(err => {
-        Zotero.alert(null, 'MASMetaData', err)
-      })
-  }
-
-  private updateMASFile(item, data) {
-    setMASMetaData(item, data)
   }
 }
 
