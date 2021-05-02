@@ -3,7 +3,7 @@ declare const ZoteroItemPane: any
 declare const Components: any
 declare const window: any
 
-import { getMASMetaData, setMASMetaData, removeMASMetaData, getPref, clearPref } from './utils'
+import { getMASMetaData, setMASMetaData, removeMASMetaData, getPref, clearPref, loadURI} from './utils'
 import { patch as $patch$ } from './monkey-patch'
 import { attributes } from './attributes'
 import { MASProgressWindow } from './mas-progress-window'
@@ -38,6 +38,10 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
     clearPref(pref)
   }
 
+  public loadURI = uri => {
+    loadURI(uri)
+  }
+
   public updateSelectedItems = operation => {
     const items = Zotero.getActiveZoteroPane().getSelectedItems()
     this.updateItems(items, operation)
@@ -46,6 +50,12 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
   public getString(name: string, params: object = {}) {
     const str = this.bundle.GetStringFromName(name)
     return str.replace(/{{(.*?)}}/g, (match, param) => `${(params[param] || '')}`)
+  }
+
+  public notify(action, type, ids) {
+    if (type === 'item' && action === 'add' && getPref('autoretrieve')) {
+      this.updateItems(Zotero.Items.get(ids), 'update')
+    }
   }
 
   private async load() {
@@ -128,7 +138,11 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
         if (match) {
           const attr = field.slice(match[0].length)
           const masAttr = attributesToDisplay[attr]
-          return getMASMetaData(this)[masAttr]
+          if (!this.isNote() && !this.isAttachment()) {
+            return getMASMetaData(this)[masAttr]
+          } else {
+            return ''
+          }
         }
       }
       return original.apply(this, arguments)

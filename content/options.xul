@@ -34,7 +34,7 @@
       <caption label="&mas-api-key-caption;"/>
       <hbox style="margin: 0">
         <label style="margin-right:0px" value="&mas-api-key-generate;"/>
-        <label style="margin-left:0px; margin-right:0px" class="text-link" onclick="Zotero.MASMetaData.Utils.loadURI('https://msr-apis.portal.azure-api.net/products/project-academic-knowledge');" value="&mas-api-key-site;"/>
+        <label style="margin-left:0px; margin-right:0px" class="text-link" onclick="Zotero.MASMetaData.loadURI('https://msr-apis.portal.azure-api.net/products/project-academic-knowledge');" value="&mas-api-key-site;"/>
         <label style="margin-left:0px; margin-right:0px" value="."/>
       </hbox>
       <separator class="thin"/>
@@ -49,7 +49,7 @@
 
     <hbox style="margin: 0">
       <label style="margin-right:0px" value="&for-more-information;"/>
-      <label style="margin-left:0px; margin-right:0px" class="text-link" onclick="Zotero.MASMetaData.Utils.loadURI('https://github.com/tobihol/zotero-mas-metadata');" value="&mas-metadata-github-page;"/>
+      <label style="margin-left:0px; margin-right:0px" class="text-link" onclick="Zotero.MASMetaData.loadURI('https://github.com/tobihol/zotero-mas-metadata');" value="&mas-metadata-github-page;"/>
       <label style="margin-left:0px; margin-right:0px" value="."/>
     </hbox>
 

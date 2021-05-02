@@ -1,7 +1,5 @@
 declare const Zotero: any
 
-import { getPref } from './utils'
-
 const baseUrl = 'https://api.labs.cognitive.microsoft.com/academic/v1.0/'
 const requestType = {
   INTERPRET: 'interpret?',

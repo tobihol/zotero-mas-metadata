@@ -2,16 +2,10 @@ declare const Zotero: any
 declare const ZoteroPane: any
 declare const OS: any
 
-// Zotero.MASMetaData.Utils = new function() {
-//   this.loadURI = function(uri) {
-//       ZoteroPane_Local.loadURI(uri);
-//   };
-// }
-
 const MAS_METADATA_JSON_NAME = 'MASMetaData.json'
 
 export function loadURI(uri) {
-  ZoteroPane.getActiveZoteroPane().loadURI(uri)
+  Zotero.getActiveZoteroPane().loadURI(uri)
 }
 
 /**
