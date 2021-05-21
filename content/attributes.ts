@@ -42,9 +42,10 @@ export const attributes = {
     'Year published': 'Y',
   },
   'display': {
-    'Citation Count': 'CC',
-    'Est. Citation Count': 'ECC',
+    'ID': 'entity.Id',
     'Logprob': 'logprob',
+    'Citation Count': 'entity.CC',
+    'Est. Citation Count': 'entity.ECC',
   },
   'PtMap': {
     '0': 'Unknown',

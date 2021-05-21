@@ -3,7 +3,7 @@ declare const ZoteroItemPane: any
 declare const Components: any
 declare const window: any
 
-import { getMASMetaData, setMASMetaData, removeMASMetaData, getPref, clearPref, loadURI} from './utils'
+import { getMASMetaData, setMASMetaData, removeMASMetaData, getPref, clearPref, loadURI, getValueWithKeyString } from './utils'
 import { patch as $patch$ } from './monkey-patch'
 import { attributes } from './attributes'
 import { MASProgressWindow } from './mas-progress-window'
@@ -14,7 +14,7 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
   private attributesToDisplay: object = {}
   private attributesForRequests: string = ''
   private observer: number = null
-  private progressWin: any = null
+  private progressWin: MASProgressWindow = null
   private bundle: any
 
   constructor() {
@@ -56,6 +56,19 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
     if (type === 'item' && action === 'add' && getPref('autoretrieve')) {
       this.updateItems(Zotero.Items.get(ids), 'update')
     }
+  }
+
+  public getValueWithKeyStringUnderCutoff(data: object, keyString: string) {
+    const logprobString = 'logprob'
+    const logprob = getValueWithKeyString(data, logprobString)
+    let value
+    if (!([logprobString, 'entity.Id'].includes(keyString)) && logprob < getPref(logprobString)) {
+      value = this.getString('DataUnderCutoff')
+    } else {
+      value = getValueWithKeyString(data, keyString)
+      value = value !== null ? value : this.getString('NoData')
+    }
+    return value
   }
 
   private async load() {
@@ -123,7 +136,8 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
         const masData = getMASMetaData(item)
         Object.keys(attributesToDisplay).forEach(attr => {
           const masAttr = attributesToDisplay[attr]
-          document.getElementById(`mas-metadata-tab-${attr}-display`).setAttribute('value', masData[masAttr])
+          const value = MASMetaData.getValueWithKeyStringUnderCutoff(masData, masAttr)
+          document.getElementById(`mas-metadata-tab-${attr}-display`).setAttribute('value', value)
         })
       }
     })
@@ -139,7 +153,9 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
           const attr = field.slice(match[0].length)
           const masAttr = attributesToDisplay[attr]
           if (!this.isNote() && !this.isAttachment()) {
-            return getMASMetaData(this)[masAttr]
+            const masData = getMASMetaData(this)
+            const value = MASMetaData.getValueWithKeyStringUnderCutoff(masData, masAttr)
+            return value
           } else {
             return ''
           }
@@ -156,7 +172,9 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
       if (item.isNote() || item.isAttachment()) return ''
       const attr = col.id.slice(match[0].length)
       const masAttr = attributesToDisplay[attr]
-      return getMASMetaData(item)[masAttr]
+      const masData = getMASMetaData(item)
+      const value = MASMetaData.getValueWithKeyStringUnderCutoff(masData, masAttr)
+      return value
     })
 
     /**
@@ -236,14 +254,14 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
         this.progressWin = new MASProgressWindow('update', items.length)
         items.forEach(item => {
           requestChain(item, this.attributesForRequests)
-          .then( data => {
-            setMASMetaData(item, data)
-            this.progressWin.next()
-          })
-          .catch( error => {
-            this.progressWin.next(true)
-            Zotero.alert(null, 'MAS MetaData', JSON.stringify(error))
-          })
+            .then(data => {
+              setMASMetaData(item, data)
+              this.progressWin.next()
+            })
+            .catch(error => {
+              this.progressWin.next(true)
+              Zotero.alert(null, 'MAS MetaData', JSON.stringify(error))
+            })
         })
         break
       case 'remove':

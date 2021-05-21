@@ -20,21 +20,33 @@ function getMASMetaDataItems(parent) {
     if (attchItem.getDisplayTitle() === MAS_METADATA_JSON_NAME) {
       masAttchs.push(attchItem)
     }
-    })
+  })
   return masAttchs
 }
 
 export function getMASMetaData(item) {
   const masAttchs = getMASMetaDataItems(item)
-  if (masAttchs.length === 0) return {} // TODO: make these return more expressive
+  if (masAttchs.length === 0) return null // TODO: make these return more expressive
   const masFile = masAttchs[0].getFilePath()
   try {
     const masString = Zotero.File.getContents(masFile)
     const masData = JSON.parse(masString)
     return masData
   } catch {
-    return {} // TODO: make this better maybe async
+    return null // TODO: make this better maybe async
   }
+}
+
+export function getValueWithKeyString(object: object, keyString: string): any {
+  if (object === null) {
+    return null
+  }
+  const nestedKeys = keyString.split('.')
+  let value = object
+  nestedKeys.forEach(key => {
+    value = value[key]
+  })
+  return value
 }
 
 export async function setMASMetaData(item, masData) {
