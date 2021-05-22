@@ -60,19 +60,6 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
     }
   }
 
-  public getValueWithKeyStringUnderCutoff(data: object, keyString: string) {
-    const logprobString = 'logprob'
-    const logprob = getValueWithKeyString(data, logprobString)
-    let value
-    if (!([logprobString, 'entity.Id'].includes(keyString)) && logprob < getPref(logprobString)) {
-      value = this.getString('DataUnderCutoff')
-    } else {
-      value = getValueWithKeyString(data, keyString)
-      value = value !== null ? value : this.getString('NoData')
-    }
-    return value
-  }
-
   private async loadAllMasData() {
     const items = await this.getAllItems()
     items.forEach(item => {
@@ -307,9 +294,15 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
 
   private getMASMetaData(item, masAttr) {
     if (!(item.id in this.masDatabase)) {
-      return 'Not in Database'
+      return this.getString('GetData.ItemNotInDatabase')
     }
-    return this.masDatabase[item.id][masAttr]
+    const masData = this.masDatabase[item.id]
+    // only show id and logprob if logprob is undercutoff
+    if (!(['logprob', 'entity.Id'].includes(masAttr)) && masData.logprob < getPref('logprob')) {
+      return this.getString('GetData.DataUnderCutoff')
+    }
+    const value = masData[masAttr]
+    return value !== null ? value : this.getString('GetData.NoData')
   }
 
   private async setMASMetaData(item, data) {
