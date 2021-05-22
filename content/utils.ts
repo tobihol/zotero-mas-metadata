@@ -2,7 +2,8 @@ declare const Zotero: any
 declare const ZoteroPane: any
 declare const OS: any
 
-const MAS_METADATA_JSON_NAME = 'MASMetaData.json'
+// TODO do this in mas.ts
+const DATA_JSON_NAME = 'MASMetaData.json'
 
 export function loadURI(uri) {
   Zotero.getActiveZoteroPane().loadURI(uri)
@@ -12,20 +13,20 @@ export function loadURI(uri) {
  * read/write data
  */
 
-function getMASMetaDataItems(parent) {
+function getDataItems(parent) {
   const attchIds = parent.getAttachments()
   const masAttchs = []
   attchIds.forEach(id => {
     const attchItem = Zotero.Items.get(id)
-    if (attchItem.getDisplayTitle() === MAS_METADATA_JSON_NAME) {
+    if (attchItem.getDisplayTitle() === DATA_JSON_NAME) {
       masAttchs.push(attchItem)
     }
   })
   return masAttchs
 }
 
-export function getMASMetaData(item) {
-  const masAttchs = getMASMetaDataItems(item)
+export function getData(item) {
+  const masAttchs = getDataItems(item)
   if (masAttchs.length === 0) return null // TODO: make these return more expressive
   const masFile = masAttchs[0].getFilePath()
   try {
@@ -49,8 +50,8 @@ export function getValueWithKeyString(object: object, keyString: string): any {
   return value
 }
 
-export async function setMASMetaData(item, masData) {
-  const masAttchs = getMASMetaDataItems(item)
+export async function setData(item, masData) {
+  const masAttchs = getDataItems(item)
   try {
     await Zotero.DB.executeTransaction(async () => {
       if (masAttchs.length) {
@@ -59,7 +60,7 @@ export async function setMASMetaData(item, masData) {
         await Zotero.File.putContentsAsync(masItem.getFilePath(), JSON.stringify(masData), masItem.attachmentCharset)
       } else {
         // create new file
-        const masName = MAS_METADATA_JSON_NAME
+        const masName = DATA_JSON_NAME
         const masItem = new Zotero.Item('attachment')
         masItem.setField('title', masName)
         masItem.parentKey = item.key
@@ -79,11 +80,11 @@ export async function setMASMetaData(item, masData) {
   }
 }
 
-export function removeMASMetaData(item) {
-  const masAttchs = getMASMetaDataItems(item)
-  masAttchs.forEach(masAttch => {
-    masAttch.eraseTx()
-  })
+export async function removeData(item) {
+  const masAttchs = getDataItems(item)
+  for (const masAttch of masAttchs) {
+    await masAttch.eraseTx()
+  }
 }
 
 /**

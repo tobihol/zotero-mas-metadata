@@ -3,15 +3,18 @@ declare const ZoteroItemPane: any
 declare const Components: any
 declare const window: any
 
-import { getMASMetaData, setMASMetaData, removeMASMetaData, getPref, clearPref, loadURI, getValueWithKeyString } from './utils'
+import { getData, setData, removeData, getPref, clearPref, loadURI, getValueWithKeyString } from './utils'
 import { patch as $patch$ } from './monkey-patch'
 import { attributes } from './attributes'
 import { MASProgressWindow } from './mas-progress-window'
 import { requestChain } from './mas-api-request'
 
 const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:variable-name
+  public masDatabase: object = {}
   private initialized: boolean = false
   private attributesToDisplay: object = {}
+  // TODO refactor
+  private masAttrs: string[] = []
   private attributesForRequests: string = ''
   private observer: number = null
   private progressWin: MASProgressWindow = null
@@ -71,6 +74,33 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
     return value
   }
 
+  public async loadAllMasData() {
+    const items = await this.getAllItems()
+    items.forEach(item => {
+      this.loadMasData(item)
+    })
+  }
+  public loadMasData(item) {
+    const masData = getData(item)
+    const id = item.id
+    this.masAttrs.forEach(masAttr => {
+      if (!(id in this.masDatabase)) {
+        this.masDatabase[id] = {}
+      }
+      this.masDatabase[id][masAttr] = getValueWithKeyString(masData, masAttr)
+    })
+  }
+
+  public async getAllItems() {
+    const libraries = await Zotero.Libraries.getAll()
+    const items = []
+    for (const lib of libraries) {
+      const itemsOfId = await Zotero.Items.getAll(lib.id, true, false)
+      items.push(...itemsOfId)
+    }
+    return items
+  }
+
   private async load() {
     if (this.initialized) return
     this.initialized = true
@@ -78,9 +108,12 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
       .getService(Components.interfaces.nsIStringBundleService)
       .createBundle('chrome://zotero-mas-metadata/locale/zotero-mas-metadata.properties')
     this.observer = Zotero.Notifier.registerObserver(this, ['item'], 'MASMetaData')
-    Zotero.initializationPromise.then(() => {
-      this.attributesToDisplay = attributes.display
-      this.attributesForRequests = Object.values(attributes.request).join(',')
+    // set up attribute lists
+    this.attributesToDisplay = attributes.display
+    this.masAttrs = Object.values(attributes.display)
+    this.attributesForRequests = Object.values(attributes.request).join(',')
+    Zotero.uiReadyPromise.then(async () => {
+      await this.loadAllMasData()
       this.patchXUL(this.attributesToDisplay)
       this.patchFunctions(this.attributesToDisplay)
     })
@@ -133,10 +166,9 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
     $patch$(ZoteroItemPane, 'viewItem', original => async function(item, _mode, _index) {
       await original.apply(this, arguments)
       if (!item.isNote() && !item.isAttachment()) {
-        const masData = getMASMetaData(item)
         Object.keys(attributesToDisplay).forEach(attr => {
           const masAttr = attributesToDisplay[attr]
-          const value = MASMetaData.getValueWithKeyStringUnderCutoff(masData, masAttr)
+          const value = MASMetaData.getMASMetaData(item, masAttr)
           document.getElementById(`mas-metadata-tab-${attr}-display`).setAttribute('value', value)
         })
       }
@@ -151,10 +183,12 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
         const match = field.match(/^mas-metadata-/)
         if (match) {
           const attr = field.slice(match[0].length)
+          const item = this
           const masAttr = attributesToDisplay[attr]
           if (!this.isNote() && !this.isAttachment()) {
-            const masData = getMASMetaData(this)
-            const value = MASMetaData.getValueWithKeyStringUnderCutoff(masData, masAttr)
+            // const masData = getMASMetaData(this)
+            // const value = MASMetaData.getValueWithKeyStringUnderCutoff(masData, masAttr)
+            const value = MASMetaData.getMASMetaData(item, masAttr)
             return value
           } else {
             return ''
@@ -165,15 +199,15 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
     })
 
     $patch$(Zotero.ItemTreeView.prototype, 'getCellText', original => function(row, col) {
-      // if (col.id !== 'zotero-items-column-mas-metadata-ecc') return original.apply(this, arguments)
       const match = col.id.match(/^zotero-items-column-mas-metadata-/)
       if (!match) return original.apply(this, arguments)
       const item = this.getRow(row).ref
       if (item.isNote() || item.isAttachment()) return ''
       const attr = col.id.slice(match[0].length)
       const masAttr = attributesToDisplay[attr]
-      const masData = getMASMetaData(item)
-      const value = MASMetaData.getValueWithKeyStringUnderCutoff(masData, masAttr)
+      // const masData = getMASMetaData(item)
+      // const value = MASMetaData.getValueWithKeyStringUnderCutoff(masData, masAttr)
+      const value = MASMetaData.getMASMetaData(item, masAttr)
       return value
     })
 
@@ -245,7 +279,7 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
     })
   }
 
-  private updateItems(items, operation) {
+  private async updateItems(items, operation) {
     items = items.filter(item => item.isTopLevelItem())
     items = items.filter(item => item.getField('title'))
     if (items.length === 0 || (this.progressWin && !this.progressWin.isFinished())) return
@@ -254,8 +288,8 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
         this.progressWin = new MASProgressWindow('update', items.length)
         items.forEach(item => {
           requestChain(item, this.attributesForRequests)
-            .then(data => {
-              setMASMetaData(item, data)
+            .then(async data => {
+              await this.setMASMetaData(item, data)
               this.progressWin.next()
             })
             .catch(error => {
@@ -266,14 +300,34 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
         break
       case 'remove':
         this.progressWin = new MASProgressWindow('remove', items.length)
-        items.forEach(item => {
+        items.forEach(async item => {
+          await this.removeMASMetaData(item)
           this.progressWin.next()
-          removeMASMetaData(item)
         })
         break
       default:
         break
     }
+  }
+
+  private getMASMetaData(item, masAttr){
+    if (!(item.id in this.masDatabase)) {
+      return 'Not in Database'
+    }
+    return this.masDatabase[item.id][masAttr]
+  }
+
+  private async setMASMetaData(item, data){
+    // create/update json file
+    await setData(item, data)
+    // refresh Database
+    this.loadMasData(item)
+  }
+
+  private async removeMASMetaData(item) {
+    // TODO make this async because the load doesnt currently work
+    await removeData(item)
+    this.loadMasData(item)
   }
 }
 
