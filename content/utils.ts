@@ -1,9 +1,5 @@
 declare const Zotero: any
-declare const ZoteroPane: any
 declare const OS: any
-
-// TODO do this in mas.ts
-const DATA_JSON_NAME = 'MASMetaData.json'
 
 export function loadURI(uri) {
   Zotero.getActiveZoteroPane().loadURI(uri)
@@ -13,26 +9,26 @@ export function loadURI(uri) {
  * read/write data
  */
 
-function getDataItems(parent) {
-  const attchIds = parent.getAttachments()
-  const masAttchs = []
-  attchIds.forEach(id => {
-    const attchItem = Zotero.Items.get(id)
-    if (attchItem.getDisplayTitle() === DATA_JSON_NAME) {
-      masAttchs.push(attchItem)
+function getAttachmentsWithName(parent, fileName: string): any {
+  const attachmentIds = parent.getAttachments()
+  const attachment = []
+  attachmentIds.forEach(id => {
+    const attachmentItem = Zotero.Items.get(id)
+    if (attachmentItem.getDisplayTitle() === fileName) {
+      attachment.push(attachmentItem)
     }
   })
-  return masAttchs
+  return attachment
 }
 
-export function getData(item) {
-  const masAttchs = getDataItems(item)
-  if (masAttchs.length === 0) return null // TODO: make these return more expressive
-  const masFile = masAttchs[0].getFilePath()
+export function getData(item, fileName: string): any {
+  const attachments = getAttachmentsWithName(item, fileName)
+  if (attachments.length === 0) return null // TODO: makes these return more expressive
+  const file = attachments[0].getFilePath()
   try {
-    const masString = Zotero.File.getContents(masFile)
-    const masData = JSON.parse(masString)
-    return masData
+    const dataString = Zotero.File.getContents(file)
+    const data = JSON.parse(dataString)
+    return data
   } catch {
     return null // TODO: make this better maybe async
   }
@@ -50,29 +46,28 @@ export function getValueWithKeyString(object: object, keyString: string): any {
   return value
 }
 
-export async function setData(item, masData) {
-  const masAttchs = getDataItems(item)
+export async function setData(item, data: object, fileName: string) {
+  const attachments = getAttachmentsWithName(item, fileName)
   try {
     await Zotero.DB.executeTransaction(async () => {
-      if (masAttchs.length) {
+      if (attachments.length) {
         // write old file
-        const masItem = masAttchs[0]
-        await Zotero.File.putContentsAsync(masItem.getFilePath(), JSON.stringify(masData), masItem.attachmentCharset)
+        const attachment = attachments[0]
+        await Zotero.File.putContentsAsync(attachment.getFilePath(), JSON.stringify(data), attachment.attachmentCharset)
       } else {
         // create new file
-        const masName = DATA_JSON_NAME
-        const masItem = new Zotero.Item('attachment')
-        masItem.setField('title', masName)
-        masItem.parentKey = item.key
-        masItem.attachmentLinkMode = 'imported_file'
-        masItem.attachmentCharset = ''
-        await masItem.save()
-        const destDir = await Zotero.Attachments.createDirectoryForItem(masItem)
-        const masPath = OS.Path.join(destDir, masName)
-        await Zotero.File.putContentsAsync(masPath, JSON.stringify(masData), masItem.attachmentCharset)
-        masItem.attachmentContentType = 'application/json'
-        masItem.attachmentPath = masPath
-        await masItem.save()
+        const attachment = new Zotero.Item('attachment')
+        attachment.setField('title', fileName)
+        attachment.parentKey = item.key
+        attachment.attachmentLinkMode = 'imported_file'
+        attachment.attachmentCharset = ''
+        await attachment.save()
+        const destDir = await Zotero.Attachments.createDirectoryForItem(attachment)
+        const path = OS.Path.join(destDir, fileName)
+        await Zotero.File.putContentsAsync(path, JSON.stringify(data), attachment.attachmentCharset)
+        attachment.attachmentContentType = 'application/json'
+        attachment.attachmentPath = path
+        await attachment.save()
       }
     })
   } catch (error) {
@@ -80,25 +75,25 @@ export async function setData(item, masData) {
   }
 }
 
-export async function removeData(item) {
-  const masAttchs = getDataItems(item)
-  for (const masAttch of masAttchs) {
-    await masAttch.eraseTx()
+export async function removeData(item, fileName: string) {
+  const attachments = getAttachmentsWithName(item, fileName)
+  for (const attachment of attachments) {
+    await attachment.eraseTx()
   }
 }
 
 /**
- * preference managment
+ * preference management
  */
 
-export function getPref(pref) {
+export function getPref(pref: string): any {
   return Zotero.Prefs.get('extensions.mas-metadata.' + pref, true)
 }
 
-export function setPref(pref, value) {
+export function setPref(pref: string, value: any) {
   return Zotero.Prefs.set('extensions.mas-metadata.' + pref, value, true)
 }
 
-export function clearPref(pref) {
+export function clearPref(pref: string) {
   return Zotero.Prefs.clear('extensions.mas-metadata.' + pref, true)
 }
