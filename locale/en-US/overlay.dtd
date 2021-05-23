@@ -1,5 +1,5 @@
 <!ENTITY mas-metadata-preferences-label "MASMetaData Preferences…">
 <!ENTITY mas-metadata-menu-label "MASMetaData">
-<!ENTITY mas-metadata-menuitem-label-update "Update citations counts">
-<!ENTITY mas-metadata-menuitem-label-remove "Remove citations counts">
+<!ENTITY mas-metadata-menuitem-label-update "Update metadata">
+<!ENTITY mas-metadata-menuitem-label-remove "Remove metadata">
 <!ENTITY mas-metadata-tab-label "MASMetaData">
