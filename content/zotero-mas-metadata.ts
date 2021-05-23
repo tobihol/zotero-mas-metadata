@@ -80,11 +80,12 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
 
   private async getAllItems() {
     const libraries = await Zotero.Libraries.getAll()
-    const items = []
+    let items = []
     for (const lib of libraries) {
       const itemsInLib = await Zotero.Items.getAll(lib.id, true, false)
       items.push(...itemsInLib)
     }
+    items = this.filterItems(items)
     return items
   }
 
@@ -96,11 +97,13 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
       .createBundle('chrome://zotero-mas-metadata/locale/zotero-mas-metadata.properties')
     this.observer = Zotero.Notifier.registerObserver(this, ['item'], 'MASMetaData')
     this.masAttributes = Object.values(attributes.display)
-    Zotero.uiReadyPromise.then(async () => {
-      await this.loadAllMasData()
+    Zotero.initializationPromise.then(async () => {
       const attributesToDisplay = attributes.display
       this.patchXUL(attributesToDisplay)
       this.patchFunctions(attributesToDisplay)
+    })
+    Zotero.uiReadyPromise.then(async () => {
+      await this.loadAllMasData()
     })
   }
 
@@ -260,9 +263,15 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
     })
   }
 
-  private async updateItems(items, operation) {
+  private filterItems(items: any[]): any[] {
     items = items.filter(item => item.isTopLevelItem())
     items = items.filter(item => item.getField('title'))
+    items = items.filter(item => !item.isNote() && !item.isAttachment())
+    return items
+  }
+
+  private async updateItems(items, operation) {
+    items = this.filterItems(items)
     if (items.length === 0 || (this.progressWin && !this.progressWin.isFinished())) return
     switch (operation) {
       case 'update':
