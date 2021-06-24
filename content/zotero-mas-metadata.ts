@@ -10,8 +10,9 @@ import { MASProgressWindow } from './mas-progress-window'
 import { requestChain } from './mas-api-request'
 
 const DATA_JSON_NAME = 'MASMetaData.json'
+const first_initialized = typeof Zotero.MASMetaData === 'undefined'
 
-const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:variable-name
+class CMASMetaData {
   public masDatabase: object = {}
   private initialized: boolean = false
   private masAttributes: string[] = []
@@ -97,11 +98,10 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
       .createBundle('chrome://zotero-mas-metadata/locale/zotero-mas-metadata.properties')
     this.observer = Zotero.Notifier.registerObserver(this, ['item'], 'MASMetaData')
     this.masAttributes = Object.values(attributes.display)
-    Zotero.initializationPromise.then(async () => {
-      const attributesToDisplay = attributes.display
-      this.patchXUL(attributesToDisplay)
-      this.patchFunctions(attributesToDisplay)
-    })
+    const attributesToDisplay = attributes.display
+    this.patchXUL(attributesToDisplay)
+    this.patchFunctions(attributesToDisplay)
+    // TODO maybe await and not like this to guaratee that it is beeing executed
     Zotero.uiReadyPromise.then(async () => {
       await this.loadAllMasData()
     })
@@ -142,7 +142,11 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
       newTreecol.setAttribute('flex', '1')
       newTreecol.setAttribute('insertafter', 'zotero-items-column-title')
       newTreecol.setAttribute('zotero-persist', 'width ordinal hidden sortActive sortDirection')
+      const newSplitter = document.createElementNS(xul, 'splitter')
       columnsContainer.appendChild(newTreecol)
+
+      newSplitter.setAttribute('class', 'tree-splitter')
+      columnsContainer.appendChild(newSplitter)
     })
   }
 
@@ -165,102 +169,103 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
     /**
      * patches for columns 
      */
-
-    $patch$(Zotero.Item.prototype, 'getField', original => function(field, unformatted, includeBaseMapped) {
-      if (typeof field === 'string') {
-        const match = field.match(/^mas-metadata-/)
-        if (match) {
-          const attr = field.slice(match[0].length)
-          const item = this
-          const masAttr = attributesToDisplay[attr]
-          if (!this.isNote() && !this.isAttachment()) {
-            const value = MASMetaData.getMASMetaData(item, masAttr)
-            return value
-          } else {
-            return ''
+    if (first_initialized) {
+      $patch$(Zotero.Item.prototype, 'getField', original => function(field, unformatted, includeBaseMapped) {
+        if (typeof field === 'string') {
+          const match = field.match(/^mas-metadata-/)
+          if (match) {
+            const attr = field.slice(match[0].length)
+            const item = this
+            const masAttr = attributesToDisplay[attr]
+            if (!this.isNote() && !this.isAttachment()) {
+              const value = MASMetaData.getMASMetaData(item, masAttr)
+              return value
+            } else {
+              return ''
+            }
           }
         }
-      }
-      return original.apply(this, arguments)
-    })
+        return original.apply(this, arguments)
+      })
 
-    $patch$(Zotero.ItemTreeView.prototype, 'getCellText', original => function(row, col) {
-      const match = col.id.match(/^zotero-items-column-mas-metadata-/)
-      if (!match) return original.apply(this, arguments)
-      const item = this.getRow(row).ref
-      if (item.isNote() || item.isAttachment()) return ''
-      const attr = col.id.slice(match[0].length)
-      const masAttr = attributesToDisplay[attr]
-      const value = MASMetaData.getMASMetaData(item, masAttr)
-      return value
-    })
+      $patch$(Zotero.ItemTreeView.prototype, 'getCellText', original => function(row, col) {
+        const match = col.id.match(/^zotero-items-column-mas-metadata-/)
+        if (!match) return original.apply(this, arguments)
+        const item = this.getRow(row).ref
+        if (item.isNote() || item.isAttachment()) return ''
+        const attr = col.id.slice(match[0].length)
+        const masAttr = attributesToDisplay[attr]
+        const value = MASMetaData.getMASMetaData(item, masAttr)
+        return value
+      })
 
-    /**
-     * patches for columns submenu
-     */
+      /**
+       * patches for columns submenu
+       */
 
-    $patch$(Zotero.ItemTreeView.prototype, 'onColumnPickerShowing', original => function(event) {
-      const menupopup = event.originalTarget
+      $patch$(Zotero.ItemTreeView.prototype, 'onColumnPickerShowing', original => function(event) {
+        const menupopup = event.originalTarget
 
-      const ns = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul'
-      const prefix = 'zotero-column-header-'
-      const doc = menupopup.ownerDocument
+        const ns = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul'
+        const prefix = 'zotero-column-header-'
+        const doc = menupopup.ownerDocument
 
-      const anonid = menupopup.getAttribute('anonid')
-      if (anonid.indexOf(prefix) === 0) {
-        return
-      }
-
-      const lastChild = menupopup.lastChild
-
-      try {
-        // More Columns menu
-        const id = prefix + 'mas-metadata-menu'
-
-        const masMenu = doc.createElementNS(ns, 'menu')
-        // masMenu.setAttribute('label', Zotero.getString('pane.items.columnChooser.moreColumns'))
-        masMenu.setAttribute('label', 'MASMetaData')
-        masMenu.setAttribute('anonid', id)
-
-        const masMenuPopup = doc.createElementNS(ns, 'menupopup')
-        masMenuPopup.setAttribute('anonid', id + '-popup')
-
-        const treecols = menupopup.parentNode.parentNode
-        const subs = Array.from(treecols.getElementsByAttribute('mas-metadata-menu', 'true')).map((x: any) => x.getAttribute('label'))
-        const masItems = []
-
-        for (const elem of menupopup.childNodes) {
-          if (elem.localName === 'menuseparator') {
-            break
-          }
-          if (elem.localName === 'menuitem' && subs.indexOf(elem.getAttribute('label')) !== -1) {
-            masItems.push(elem)
-          }
+        const anonid = menupopup.getAttribute('anonid')
+        if (anonid.indexOf(prefix) === 0) {
+          return
         }
-        // Disable certain fields for feeds
-        const labels = Array.from(treecols.getElementsByAttribute('disabled-in', '*'))
-          .filter((e: any) => e.getAttribute('disabled-in').split(' ').indexOf(this.collectionTreeRow.type) !== -1)
-          .map((e: any) => e.getAttribute('label'))
-        for (const elem of menupopup.childNodes) {
-          elem.setAttribute('disabled', labels.indexOf(elem.getAttribute('label')) !== -1)
-        }
-        // Sort fields and move to submenu
-        const collation = Zotero.getLocaleCollation()
-        masItems.sort((a, b) => {
-          return collation.compareString(1, a.getAttribute('label'), b.getAttribute('label'))
-        })
-        masItems.forEach(elem => {
-          masMenuPopup.appendChild(menupopup.removeChild(elem))
-        })
 
-        masMenu.appendChild(masMenuPopup)
-        menupopup.insertBefore(masMenu, lastChild)
-      } catch (e) {
-        Components.utils.reportError(e)
-        Zotero.debug(e, 1)
-      }
-      original.apply(this, arguments)
-    })
+        const lastChild = menupopup.lastChild
+
+        try {
+          // More Columns menu
+          const id = prefix + 'mas-metadata-menu'
+
+          const masMenu = doc.createElementNS(ns, 'menu')
+          // masMenu.setAttribute('label', Zotero.getString('pane.items.columnChooser.moreColumns'))
+          masMenu.setAttribute('label', 'MASMetaData')
+          masMenu.setAttribute('anonid', id)
+
+          const masMenuPopup = doc.createElementNS(ns, 'menupopup')
+          masMenuPopup.setAttribute('anonid', id + '-popup')
+
+          const treecols = menupopup.parentNode.parentNode
+          const subs = Array.from(treecols.getElementsByAttribute('mas-metadata-menu', 'true')).map((x: any) => x.getAttribute('label'))
+          const masItems = []
+
+          for (const elem of menupopup.childNodes) {
+            if (elem.localName === 'menuseparator') {
+              break
+            }
+            if (elem.localName === 'menuitem' && subs.indexOf(elem.getAttribute('label')) !== -1) {
+              masItems.push(elem)
+            }
+          }
+          // Disable certain fields for feeds
+          const labels = Array.from(treecols.getElementsByAttribute('disabled-in', '*'))
+            .filter((e: any) => e.getAttribute('disabled-in').split(' ').indexOf(this.collectionTreeRow.type) !== -1)
+            .map((e: any) => e.getAttribute('label'))
+          for (const elem of menupopup.childNodes) {
+            elem.setAttribute('disabled', labels.indexOf(elem.getAttribute('label')) !== -1)
+          }
+          // Sort fields and move to submenu
+          const collation = Zotero.getLocaleCollation()
+          masItems.sort((a, b) => {
+            return collation.compareString(1, a.getAttribute('label'), b.getAttribute('label'))
+          })
+          masItems.forEach(elem => {
+            masMenuPopup.appendChild(menupopup.removeChild(elem))
+          })
+
+          masMenu.appendChild(masMenuPopup)
+          menupopup.insertBefore(masMenu, lastChild)
+        } catch (e) {
+          Components.utils.reportError(e)
+          Zotero.debug(e, 1)
+        }
+        original.apply(this, arguments)
+      })
+    }
   }
 
   private filterItems(items: any[]): any[] {
@@ -324,6 +329,8 @@ const MASMetaData = Zotero.MASMetaData || new class { // tslint:disable-line:var
     this.loadMasData(item)
   }
 }
+
+const MASMetaData = new CMASMetaData // tslint:disable-line:variable-name
 
 export = MASMetaData
 

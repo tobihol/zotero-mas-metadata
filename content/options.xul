@@ -60,5 +60,4 @@
   <!-- Include the main extension logic  -->
   <script src="options.js"/>
   <script src="chrome://zotero/content/include.js"/>
-  <script src="chrome://zotero-mas-metadata/content/include.js"/>
 </prefwindow>
