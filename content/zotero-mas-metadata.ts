@@ -148,6 +148,9 @@ class CMASMetaData {
       newSplitter.setAttribute('class', 'tree-splitter')
       columnsContainer.appendChild(newSplitter)
     })
+
+    // restore column setting for the dynamically created columns
+    Zotero.getActiveZoteroPane().unserializePersist()
   }
 
   private patchFunctions(attributesToDisplay) {
