@@ -87,7 +87,7 @@ export function requestChain(item, attributes) {
         fastReject()
       } else {
         const fastEvalTitle = title.replace(/\W/g, ' ').replace(/\s+/g, ' ').toLowerCase()
-        const expr = `And(Y=${year},Ti='${fastEvalTitle}')`
+        const expr = `And(Ty='0',Y=${year},Ti='${fastEvalTitle}')`
         evaluateExpr(expr, attributes)
           .then((response: any) => {
             const entities = response.entities

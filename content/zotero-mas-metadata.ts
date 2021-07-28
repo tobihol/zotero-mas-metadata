@@ -279,7 +279,8 @@ const MASMetaData = new class { // tslint:disable-line:variable-name
         const attributesForRequest = Object.values(attributes.request).join(',')
         items.forEach(item => {
           requestChain(item, attributesForRequest)
-            .then(async data => {
+            .then(async (data: any) => {
+              data.lastUpdated = new Date()
               await this.setMASMetaData(item, data)
               this.progressWin.next()
             })
@@ -306,12 +307,38 @@ const MASMetaData = new class { // tslint:disable-line:variable-name
       return this.getString('GetData.ItemNotInDatabase')
     }
     const masData = this.masDatabase[item.id]
-    // only show id and logprob if logprob is undercutoff
-    if (!(['logprob', 'entity.Id'].includes(masAttr)) && masData.logprob < getPref('logprob')) {
+    // dont show metadata if the probability of the correct metadata having been found is to low
+    if (!(['lastUpdated', 'logprob', 'entity.Id'].includes(masAttr)) && masData.logprob < getPref('logprob')) {
       return this.getString('GetData.DataUnderCutoff')
     }
-    const value = masData[masAttr]
-    return value !== null ? value : this.getString('GetData.NoData')
+
+    let value = masData[masAttr]
+
+    // null or undefined
+    if (value == null) {
+      return this.getString('GetData.NoData')
+    }
+
+    // handle special cases of attributes
+    switch (masAttr) {
+      // display as date
+      case 'lastUpdated':
+        value = new Date(value).toLocaleString()
+        break
+      // only display fields with no parent fields (level 0 fields)
+      case 'entity.F':
+        const tmp = []
+        value.forEach(field => {
+          if (field.FId in attributes.FieldsOfStudy) {
+            tmp.push(field.DFN)
+          }
+        })
+        value = tmp
+        break
+      default:
+        break
+    }
+    return value
   }
 
   private async setMASMetaData(item, data) {
