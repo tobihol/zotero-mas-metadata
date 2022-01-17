@@ -1,6 +1,6 @@
 # Zotero MAS MetaData
 
-**⚠️ The MAS API is depreciated as of the start of 2022. I am building a new plugin that uses the Semantic Scholar API instead and adds more metadata. It will be ready January 10.**
+**⚠️ The MAS API is depreciated as of the start of 2022. I am building a new plugin that uses the Semantic Scholar API instead and adds more metadata.**
 
 
 MAS MetaData is a [Zotero](https://github.com/zotero/zotero.git) plugin that uses the [Microsoft Academic Search API](https://msr-apis.portal.azure-api.net/docs/services/academic-search-api/) (MAS) to add more metadata to Zotero. Currently it only adds citation counts to the extra field of items. This will be extended upon in future versions.
